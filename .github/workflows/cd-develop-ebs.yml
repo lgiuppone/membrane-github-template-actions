@@ -1,0 +1,197 @@
+name: Deploy to dev
+
+on:
+  workflow_call:
+    inputs:
+      BACKEND_APPLICATION:
+        required: true
+        type: string
+      BACKEND_ENVIRONMENT:
+        required: true
+        type: string
+      WORKER_APPLICATION:
+        required: true
+        type: string
+      WORKER_ENVIRONMENT:
+        required: true
+        type: string
+      BUCKET:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      NEW_RELIC_ACCOUNT_ID:
+        required: true
+      NEW_RELIC_API_KEY:
+        required: true
+      NEW_RELIC_APPLICATION_ID:
+        required: true
+      NEW_RELIC_WORKER_ID:
+        required: true
+      
+jobs:
+  ci:
+    if: github.event.pull_request.merged == true
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 60    
+    strategy:
+      matrix:
+        node-version: [14.x]
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Code build
+      run: npm ci
+
+    - name: Run unit tests
+      run: npm test
+
+    - name: Run lint
+      run: npm run lint
+
+  cd:
+    if: github.event.pull_request.merged == true
+    needs: ci
+    name: deploy to develop
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: develop
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: STARTED
+        color: good
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+  
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Generate swagger doc
+      run: npx swagger-inline './**.js' --base ./swaggerBase.yaml > swaggerDoc.yaml
+
+    - name: Generate index.html docs
+      run: npx redoc-cli@0.13.2 bundle swaggerDoc.yaml --output docs/index.html
+
+    - name: delete default cron
+      run: rm -f cron.yaml
+
+    - name: Select and set cron into code
+      run: cat cron-dev.yml > cron.yaml
+    
+    - name: Generate deployment package
+      run: zip -r deploy.zip . -x '*.git*'
+  
+    - name: Code build
+      run: npm ci
+
+    - name: Run unit tests
+      run: npm test
+
+    - name: Run lint
+      run: npm run lint
+
+    - name: Deploy Backend application to EB DEV
+      uses: einaregilsson/beanstalk-deploy@v20
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ inputs.BACKEND_APPLICATION }}
+        environment_name: ${{ inputs.BACKEND_ENVIRONMENT }}
+        version_label: ${{ github.sha }}
+        wait_for_environment_recovery: 120
+        wait_for_deployment: false
+        region: us-east-2
+        deployment_package: deploy.zip
+        existing_bucket_name: ${{ inputs.BUCKET }}
+        use_existing_version_if_available: true
+
+    - name: Deploy Worker application to EB DEV
+      uses: einaregilsson/beanstalk-deploy@v20
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ inputs.WORKER_APPLICATION }}
+        environment_name: ${{ inputs.WORKER_ENVIRONMENT }}
+        version_label: ${{ github.sha }}
+        wait_for_environment_recovery: 120
+        wait_for_deployment: false
+        region: us-east-2
+        deployment_package: deploy.zip
+        existing_bucket_name: ${{ inputs.BUCKET }}
+        use_existing_version_if_available: true
+    
+    - name: Create New Relic deployment marker for Backend
+      uses: newrelic/deployment-marker-action@v1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+        applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
+        revision: "${{ github.ref }}-${{ github.sha }}"
+
+    - name: Create New Relic deployment marker for Worker
+      uses: newrelic/deployment-marker-action@v1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+        applicationId: ${{ secrets.NEW_RELIC_WORKER_ID }}
+        revision: "${{ github.ref }}-${{ github.sha }}"
+
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: SUCCESS
+        color: good
+
+    - name: Notify slack fail
+      if: failure()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: FAILED
+        color: danger
