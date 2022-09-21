@@ -18,6 +18,15 @@ on:
       BUCKET:
         required: true
         type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_SHA:
+        required: true
+        type: string
+      GH_REF:
+        required: true
+        type: string
     secrets:
       NPM_TOKEN:
         required: true
@@ -35,44 +44,8 @@ on:
         required: true
       
 jobs:
-  ci:
-    if: github.event.pull_request.merged == true
-    name: ci
-    runs-on: ubuntu-latest
-    timeout-minutes: 60    
-    strategy:
-      matrix:
-        node-version: [14.x]
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Use cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-
-    - name: Code build
-      run: npm ci
-
-    - name: Run unit tests
-      run: npm test
-
-    - name: Run lint
-      run: npm run lint
-
   cd:
-    if: github.event.pull_request.merged == true
+    if: inputs.PR_MERGED == true
     needs: ci
     name: deploy to develop
     runs-on: ubuntu-latest
@@ -137,7 +110,7 @@ jobs:
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: ${{ inputs.BACKEND_APPLICATION }}
         environment_name: ${{ inputs.BACKEND_ENVIRONMENT }}
-        version_label: ${{ github.sha }}
+        version_label: ${{ inputs.GH_SHA }}
         wait_for_environment_recovery: 120
         wait_for_deployment: false
         region: us-east-2
@@ -152,7 +125,7 @@ jobs:
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: ${{ inputs.WORKER_APPLICATION }}
         environment_name: ${{ inputs.WORKER_ENVIRONMENT }}
-        version_label: ${{ github.sha }}
+        version_label: ${{ inputs.GH_SHA }}
         wait_for_environment_recovery: 120
         wait_for_deployment: false
         region: us-east-2
@@ -166,7 +139,7 @@ jobs:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
         applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
-        revision: "${{ github.ref }}-${{ github.sha }}"
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Create New Relic deployment marker for Worker
       uses: newrelic/deployment-marker-action@v1
@@ -174,7 +147,7 @@ jobs:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
         applicationId: ${{ secrets.NEW_RELIC_WORKER_ID }}
-        revision: "${{ github.ref }}-${{ github.sha }}"
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Notify slack success
       if: success()
