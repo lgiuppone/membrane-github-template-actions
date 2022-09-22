@@ -36,7 +36,7 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform Init
-      working-directory: TF_WORKING_DIRECTORY
+      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       id: init
       env:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
 
     - name: Terraform plan
       id: plan
-      working-directory: TF_WORKING_DIRECTORY
+      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       env:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD_DEV }}        
