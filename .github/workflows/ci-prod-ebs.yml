@@ -1,27 +1,26 @@
-name: Deploy to dev
+name: Deploy to prod
 
 on:
   workflow_call:
     inputs:
-      HAS_UNIT_TEST:
-        required: true
-        type: boolean
       GH_PR_MERGED:
         required: true
         type: boolean
-      GH_SHA:
-        required: true
-        type: string
     secrets:
       NPM_TOKEN:
         required: true
 
 jobs:
   ci:
-    if: ${{ inputs.GH_PR_MERGED }}
+    if: ${{ inputs.GH_PR_MERGED }} 
     name: ci
     runs-on: ubuntu-latest
     timeout-minutes: 60    
+    strategy:
+      matrix:
+        node-version: [14.x]
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -34,18 +33,15 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
-    - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/setup-node@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
+        node-version: ${{ matrix.node-version }}
 
     - name: Code build
-      run: npm ci  --ignore-scripts
+      run: npm ci
 
     - name: Run unit tests
-      if: inputs.HAS_UNIT_TEST
       run: npm test
 
     - name: Run lint

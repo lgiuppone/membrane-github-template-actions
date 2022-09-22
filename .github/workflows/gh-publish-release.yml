@@ -1,0 +1,89 @@
+name: Deploy to prod
+
+on:
+  workflow_call:
+    inputs:
+      GH_PR_TITLE:
+        required: true
+        type: string
+      GH_PR_HEAD_REF:
+        required: true
+        type: string
+      GH_PR_HEAD_SHA:
+        required: true
+        type: string
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      SENTRY_AUTH_TOKEN:
+        required: true
+      SENTRY_ORG:
+        required: true
+      SENTRY_PROJECT:
+        required: true
+
+jobs:
+  publish-release:
+    name: publish-new-version-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jungwinter/split@v2
+        id: split
+        with:
+          msg: '${{ github.event.pull_request.title }}'
+
+      - name: Extract version from branch name
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+
+      - name: Create Release
+        uses: thomaseizinger/create-release@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          tag_name: ${{ steps.split.outputs._2 }}
+          name: ${{ steps.split.outputs._2 }}
+          draft: false
+          prerelease: false
+
+      - name: Merge main into staging branch
+        uses: thomaseizinger/create-pull-request@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: main
+          base: staging
+          title: Merge main into staging branch
+          body: |
+            This PR merges the main branch back into staging.
+            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the staging branch.
+
+      - name: Merge main into develop branch
+        uses: thomaseizinger/create-pull-request@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: main
+          base: develop
+          title: Merge main into develop branch
+          body: |
+            This PR merges the main branch back into develop.
+            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the develop branch.
+   
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Publish Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          # SENTRY_URL: https://sentry.io/
+        with:
+          environment: lite-prod
+          version: ${{ steps.split.outputs._2 }}
+          

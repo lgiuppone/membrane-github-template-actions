@@ -21,6 +21,15 @@ on:
       CONTAINER_NAME:
         required: true
         type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_SHA:
+        required: true
+        type: string
+      GH_REF:
+        required: true
+        type: string
     secrets:
       NPM_TOKEN:
         required: true
@@ -34,63 +43,14 @@ on:
         required: true
       NEW_RELIC_APPLICATION_ID:
         required: true
+      GITHUB_TOKEN:
+        required: true
+      SLACK_ALARMS_TOKEN:
+        required: true
 
 jobs:
-  ci:
-    if: ${{ github.event.pull_request.merged == true }} 
-    name: ci
-    runs-on: ubuntu-latest
-    timeout-minutes: 60    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Use cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/setup-node@v1
-      with:
-          node-version: 16
-          registry-url: https://registry.npmjs.org/
-
-    - name: Code build
-      run: npm ci --ignore-scripts
-
-    # - name: Run unit tests
-    #   run: npm test
-
-    - name: Run lint
-      run: npm run lint
-
-    - name: Build, and tag Docker image
-      id: build-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NPM_TOKEN=${NPM_TOKEN}
-
   cd:
-    needs: ci
-    if: ${{ github.event.pull_request.merged == true }} 
+    if: ${{ inputs.GH_PR_MERGED }} 
     name: cd to prod
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -133,7 +93,7 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
       run: |
         docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NPM_TOKEN=${NPM_TOKEN}
 
@@ -141,7 +101,7 @@ jobs:
       id: build-push-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
       run: |
         docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . --build-arg NPM_TOKEN=${NPM_TOKEN}
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -150,7 +110,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ github.sha }}'
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -187,7 +147,7 @@ jobs:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
         applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
-        revision: "${{ github.ref }}-${{ github.sha }}"
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Notify slack success
       if: success()
@@ -208,57 +168,3 @@ jobs:
         channel: dev-releases-prod
         status: FAILED
         color: danger
-
-  publish-release:
-    needs: cd
-    name: publish-new-version-release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: jungwinter/split@v2
-        id: split
-        with:
-          msg: '${{ github.event.pull_request.title }}'
-
-      - name: Extract version from branch name
-        run: |
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-
-      - name: Create Release
-        uses: thomaseizinger/create-release@1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
-          tag_name: ${{ steps.split.outputs._2 }}
-          name: ${{ steps.split.outputs._2 }}
-          draft: false
-          prerelease: false
-
-      - name: Merge main into staging branch
-        uses: thomaseizinger/create-pull-request@1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: main
-          base: staging
-          title: Merge main into staging branch
-          body: |
-            This PR merges the main branch back into staging.
-            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the staging branch.
-
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Publish Sentry release
-        uses: getsentry/action-release@v1
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          # SENTRY_URL: https://sentry.io/
-        with:
-          environment: production
-          version: ${{ steps.split.outputs._2 }}
-          

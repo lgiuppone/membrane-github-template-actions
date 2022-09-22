@@ -44,9 +44,9 @@ jobs:
     - name: Code build
       run: npm ci --ignore-scripts
 
-      - name: Run unit tests
-        if: inputs.HAS_UNIT_TEST
-        run: npm test
+    - name: Run unit tests
+      if: inputs.HAS_UNIT_TEST
+      run: npm test
 
     - name: Run lint
       run: npm run lint

@@ -42,7 +42,9 @@ on:
         required: true
       NEW_RELIC_WORKER_ID:
         required: true
-      
+      SLACK_ALARMS_TOKEN:
+        required: true
+              
 jobs:
   cd:
     if: inputs.PR_MERGED
