@@ -1,0 +1,56 @@
+name: Deploy to dev
+
+on:
+  workflow_call:
+    inputs:
+      TF_WORKING_DIRECTORY:
+        required: true
+        type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+    secrets:
+      TF_API_TOKEN:
+        required: true
+      GH_PAT_TOKEN:
+        required: true
+      APP_DB_PASSWORD_DEV:
+        required: true       
+
+jobs:
+  terraform:
+    if: ${{ inputs.GH_PR_MERGED }}
+    name: Terraform
+    runs-on: ubuntu-latest
+    environment: infra
+    timeout-minutes: 60
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the preferred version of Terraform CLI 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.2.0
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    - name: Terraform Init
+      working-directory: TF_WORKING_DIRECTORY
+      id: init
+      env:
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+      run:  |
+          git config --local --remove-section http."https://github.com/"
+          git config --global url."https://infra-membrane:${GH_PAT_TOKEN}@github.com/Lattice-Trade".insteadOf "https://github.com/Lattice-Trade"
+          terraform init
+
+    - name: Terraform plan
+      id: plan
+      working-directory: TF_WORKING_DIRECTORY
+      env:
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD_DEV }}        
+      run:  |
+          ../../deploy.sh
+          terraform apply -auto-approve

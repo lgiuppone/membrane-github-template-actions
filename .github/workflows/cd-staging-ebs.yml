@@ -46,9 +46,7 @@ on:
       NEW_RELIC_WORKER_ID:
         required: true
       SLACK_ALARMS_TOKEN:
-        required: true
-      GITHUB_TOKEN:
-        required: true     
+        required: true 
                 
 jobs:
   cd:
