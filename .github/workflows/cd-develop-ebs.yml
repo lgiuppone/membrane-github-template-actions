@@ -45,7 +45,7 @@ on:
       
 jobs:
   cd:
-    if: inputs.PR_MERGED == true
+    if: inputs.PR_MERGED
     needs: ci
     name: deploy to develop
     runs-on: ubuntu-latest
