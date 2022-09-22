@@ -1,0 +1,313 @@
+name: "Implement new release"
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        required: true
+        type: string
+      ECR_REPOSITORY:
+        required: true
+        type: string
+      TASK_DEFINITION:
+        required: true
+        type: string
+      ECS_SERVICE:
+        required: true
+        type: string
+      ECS_CLUSTER:
+        required: true
+        type: string
+      CONTAINER_NAME:
+        required: true
+        type: string
+      GH_BRANCH:
+        required: true
+        type: string
+      GH_VERSION:
+        required: true
+        type: string
+      GH_SHA:
+        required: true
+        type: string
+      GH_REF:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      NEW_RELIC_ACCOUNT_ID:
+        required: true
+      NEW_RELIC_API_KEY:
+        required: true
+      NEW_RELIC_APPLICATION_ID:
+        required: true
+
+jobs:
+  draft-new-release:
+    name: "Draft a new release"
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.GH_BRANCH}}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release branch
+        run: |
+          git checkout -b release/${{ inputs.GH_VERSION }} ${{ inputs.GH_BRANCH}}
+          git status
+
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub actions"
+          git config user.email noreply@github.com
+
+      - name: Merge from main
+        run: |
+          git merge origin/main
+
+      - name: Bump version in package.json
+        run: yarn version --new-version ${{ inputs.GH_VERSION }} --no-git-tag-version
+
+      - name: Commit manifest files
+        id: make-commit
+        run: |
+          git add package.json
+          git commit --message "Prepare release ${{ inputs.GH_VERSION }}"
+
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+
+      - name: Push new branch release
+        run: git push origin release/${{ inputs.GH_VERSION }}
+
+      - name: Push new branch hotfix
+        run: |
+          git checkout -b hotfix/${{ inputs.GH_VERSION }} release/${{ inputs.GH_VERSION }}
+          git push origin hotfix/${{ inputs.GH_VERSION }}
+
+      - name: Create PR release to main
+        uses: thomaseizinger/create-pull-request@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: release/${{ inputs.GH_VERSION }}
+          base: main
+          title: Pre-release version ${{ inputs.GH_VERSION }}
+          reviewers: ${{ github.actor }}
+          body: |
+            Hi @${{ github.actor }}!
+
+            This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            I've updated the changelog and bumped the versions in the manifest files in this commit: ${{ steps.make-commit.outputs.commit }}.
+
+            Merging this PR will create a GitHub release and upload any assets that are created as part of the release build.
+
+      - name: Create PR release to staging for backport
+        uses: thomaseizinger/create-pull-request@1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: release/${{ inputs.GH_VERSION }}
+          base: staging
+          title: Backport version ${{ inputs.GH_VERSION }}
+          reviewers: ${{ github.actor }}
+          body: |
+            Hi @${{ github.actor }}!
+
+            This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            I've updated the changelog and bumped the versions in the manifest files in this commit: ${{ steps.make-commit.outputs.commit }}.
+
+            Merging this PR will create a GitHub release and upload any assets that are created as part of the release build.
+
+  ci:
+    #if: ${{ github.event.review.state == 'approved' }}
+    needs: draft-new-release
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 60     
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: release/${{ inputs.GH_VERSION }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v1
+      with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+
+    - name: Code build
+      run: npm ci --ignore-scripts
+
+    # - name: Run unit tests
+    #   run: npm test
+
+    - name: Run lint
+      run: npm run lint
+
+    - name: Build, and tag Docker image
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
+      run: |
+        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NPM_TOKEN=${NPM_TOKEN}
+
+  cd:
+    #if: ${{ github.event.review.state == 'approved' }}
+    needs: ci
+    name: pre-release to staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: staging
+
+    steps:
+    - uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: STARTED
+        color: good
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: release/${{ inputs.GH_VERSION }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v1
+      with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      
+    - name: Code build
+      run: npm ci --ignore-scripts
+
+    - name: Build, and tag Docker image
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
+      run: |
+        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NPM_TOKEN=${NPM_TOKEN}
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-push-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
+      run: |
+        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . --build-arg NPM_TOKEN=${NPM_TOKEN}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+      env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ inputs.AWS_REGION }}
+   
+    - name: Download task definition
+      run: |
+        aws ecs describe-task-definition --task-definition ${TASK_DEFINITION} --query taskDefinition > task-definition.json
+        
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ inputs.CONTAINER_NAME }}
+        image: ${{ steps.build-push-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ inputs.ECS_SERVICE }}
+        cluster: ${{ inputs.ECS_CLUSTER }}
+        wait-for-service-stability: false
+
+    - name: Create New Relic deployment marker
+      uses: newrelic/deployment-marker-action@v1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+        applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: SUCCESS
+        color: good
+
+    - name: Notify slack fail
+      if: failure()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: dev-releases
+        status: FAILED
+        color: danger
