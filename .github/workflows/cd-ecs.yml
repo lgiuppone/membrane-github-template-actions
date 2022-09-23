@@ -40,8 +40,6 @@ on:
         required: true
         type: string
 
-
-
     secrets:
       NPM_TOKEN:
         required: true
