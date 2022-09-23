@@ -28,7 +28,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-          ref: GH_BRANCH_NAME
+          ref: ${{ inputs.GH_BRANCH_NAME }}
 
     - name: Use cache dependencies
       uses: actions/cache@v3
