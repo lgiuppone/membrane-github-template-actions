@@ -15,7 +15,7 @@ on:
       GH_PAT_TOKEN:
         required: true
       APP_DB_PASSWORD:
-        required: true       
+        required: true
 
 jobs:
   terraform:
@@ -42,6 +42,17 @@ jobs:
           git config --local --remove-section http."https://github.com/"
           git config --global url."https://infra-membrane:${GH_PAT_TOKEN}@github.com/Lattice-Trade".insteadOf "https://github.com/Lattice-Trade"
           terraform init
+
+    - name: Terraform validate
+      id: validate
+      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+      env:
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
+      run:  |
+          ../../deploy.sh
+          terraform validate
+          terraform fmt -check
 
     - name: Terraform plan
       id: plan
