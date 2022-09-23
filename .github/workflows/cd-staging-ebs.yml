@@ -18,6 +18,9 @@ on:
       BUCKET:
         required: true
         type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
       GH_BRANCH:
         required: true
         type: string
@@ -50,8 +53,7 @@ on:
                 
 jobs:
   cd:
-    #if: ${{ github.event.review.state == 'approved' }}
-    needs: ci
+    if: ${{ inputs.GH_PR_MERGED }}
     name: pre-release to staging
     runs-on: ubuntu-latest
     timeout-minutes: 60
