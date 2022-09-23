@@ -47,14 +47,14 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-      NEW_RELIC_ACCOUNT_ID:
-        required: true
-      NEW_RELIC_API_KEY:
+#      NEW_RELIC_ACCOUNT_ID:
+#        required: true
+#      NEW_RELIC_API_KEY:
         required: true
       SLACK_ALARMS_TOKEN:
         required: true
-      NEW_RELIC_APPLICATION_ID:
-        required: true
+#      NEW_RELIC_APPLICATION_ID:
+#        required: true
 
 jobs:
   cd:
