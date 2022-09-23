@@ -9,6 +9,8 @@ on:
       GH_PR_MERGED:
         required: true
         type: boolean
+      TF_SKIP:
+        type: boolean
     secrets:
       TF_API_TOKEN:
         required: true
