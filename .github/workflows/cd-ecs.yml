@@ -39,8 +39,9 @@ on:
       SLACK_CHANNEL:
         required: true
         type: string
- #     NEW_RELIC_APPLICATION_ID:
- #       required: true
+      NEW_RELIC_APPLICATION_ID:
+        required: true
+        type: string
     secrets:
       NPM_TOKEN:
         required: true
