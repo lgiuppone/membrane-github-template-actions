@@ -1,7 +1,5 @@
 name: Deploy to dev
 
-
-
 on:
   workflow_call:
     inputs:
@@ -54,7 +52,7 @@ on:
 #      NEW_RELIC_ACCOUNT_ID:
 #        required: true
 #      NEW_RELIC_API_KEY:
-        required: true
+#        required: true
       SLACK_ALARMS_TOKEN:
         required: true
 #      NEW_RELIC_APPLICATION_ID:
