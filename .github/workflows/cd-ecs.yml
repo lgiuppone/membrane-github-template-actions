@@ -39,6 +39,8 @@ on:
       SLACK_CHANNEL:
         required: true
         type: string
+      NEW_RELIC_APPLICATION_ID:
+        required: true
     secrets:
       NPM_TOKEN:
         required: true
@@ -49,8 +51,6 @@ on:
       NEW_RELIC_ACCOUNT_ID:
         required: true
       NEW_RELIC_API_KEY:
-        required: true
-      NEW_RELIC_APPLICATION_ID:
         required: true
       SLACK_ALARMS_TOKEN:
         required: true
@@ -163,14 +163,15 @@ jobs:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ inputs.ECS_SERVICE }}
         cluster: ${{ inputs.ECS_CLUSTER }}
-        wait-for-service-stability: false
+        wait-for-service-stability: true
 
     - name: Create New Relic deployment marker
       uses: newrelic/deployment-marker-action@v1
+      continue-on-error: true
       with:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-        applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
+        applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
         revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Notify slack success
