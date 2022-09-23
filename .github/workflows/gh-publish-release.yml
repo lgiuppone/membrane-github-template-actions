@@ -12,6 +12,9 @@ on:
       GH_PR_HEAD_SHA:
         required: true
         type: string
+      SENTRY_ENV:
+        required: true
+        type: string
     secrets:
       SENTRY_AUTH_TOKEN:
         required: true
@@ -82,6 +85,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
           # SENTRY_URL: https://sentry.io/
         with:
-          environment: lite-prod
-          version: ${{ steps.split.outputs._2 }}
+          environment: ${{ inputs.SENTRY_ENV }}
+          version: ${{ github.event.pull_request.merge_commit_sha }}
+          version_prefix: ${{ steps.split.outputs._2 }}
           
