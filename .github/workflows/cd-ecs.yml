@@ -112,6 +112,7 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ inputs.GH_SHA }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --build-arg NPM_TOKEN=${NPM_TOKEN}
@@ -120,6 +121,7 @@ jobs:
       id: build-push-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
         IMAGE_TAG: ${{ inputs.GH_SHA }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . --build-arg NPM_TOKEN=${NPM_TOKEN}
@@ -138,9 +140,12 @@ jobs:
       env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}          
           AWS_DEFAULT_REGION: ${{ inputs.AWS_REGION }}
    
     - name: Download task definition
+      env:
+          TASK_DEFINITION: ${{ inputs.TASK_DEFINITION }}
       run: |
         aws ecs describe-task-definition --task-definition ${TASK_DEFINITION} --query taskDefinition > task-definition.json
         
