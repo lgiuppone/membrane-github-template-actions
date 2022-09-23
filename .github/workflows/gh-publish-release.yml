@@ -15,12 +15,13 @@ on:
       SENTRY_ENV:
         required: true
         type: string
+      SENTRY_PROJECT:
+        required: true
+        type: string
     secrets:
       SENTRY_AUTH_TOKEN:
         required: true
       SENTRY_ORG:
-        required: true
-      SENTRY_PROJECT:
         required: true
 
 jobs:
@@ -82,7 +83,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_PROJECT: ${{ inputs.SENTRY_PROJECT }}
           # SENTRY_URL: https://sentry.io/
         with:
           environment: ${{ inputs.SENTRY_ENV }}
