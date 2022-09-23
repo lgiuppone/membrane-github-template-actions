@@ -23,7 +23,6 @@ on:
 
 jobs:
   terraform:
-    if: ${{ inputs.GH_PR_MERGED }}
     name: Terraform
     runs-on: ubuntu-latest
     environment: infra
