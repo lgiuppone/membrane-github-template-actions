@@ -42,6 +42,9 @@ on:
       NEW_RELIC_APPLICATION_ID:
         required: true
         type: string
+      NODE_VERSION:
+        required: true
+        type: string
     secrets:
       NPM_TOKEN:
         required: true

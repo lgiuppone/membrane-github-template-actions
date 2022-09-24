@@ -12,6 +12,9 @@ on:
       GH_HEAD_REF:
         required: true
         type: string
+      NODE_VERSION:
+        required: true
+        type: string
     secrets:
       NPM_TOKEN:
         required: true
@@ -56,10 +59,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+            node-version: ${{ inputs.NODE_VERSION }}
+            registry-url: https://registry.npmjs.org/
 
       - name: Code build
         run: npm ci
