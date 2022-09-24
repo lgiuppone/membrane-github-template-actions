@@ -1,4 +1,4 @@
-name: Deploy to dev
+name: Build & test
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
 jobs:
   ci:
     if: ${{ inputs.GH_PR_MERGED }}
-    name: ci
+    name: build & tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:

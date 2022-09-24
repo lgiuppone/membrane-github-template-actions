@@ -1,4 +1,4 @@
-name: Deploy to prod
+name: publish release
 
 on:
   workflow_call:
@@ -26,7 +26,7 @@ on:
 
 jobs:
   publish-release:
-    name: publish-new-version-release
+    name: publish new version release
     runs-on: ubuntu-latest
     steps:
       - uses: jungwinter/split@v2
