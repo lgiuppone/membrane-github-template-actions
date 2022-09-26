@@ -59,7 +59,7 @@ jobs:
       env:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
       run:  |
-          cat $DB_PASSWORD
+          echo $DB_PASSWORD
 #../../deploy.sh
 #sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
 #terraform plan
