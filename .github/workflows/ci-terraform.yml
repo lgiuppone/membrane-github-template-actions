@@ -6,9 +6,6 @@ on:
       TF_WORKING_DIRECTORY:
         required: true
         type: string
-      GH_PR_MERGED:
-        required: true
-        type: boolean
       TF_SKIP:
         type: boolean
     secrets:
