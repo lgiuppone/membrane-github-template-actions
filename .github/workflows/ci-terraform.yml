@@ -57,8 +57,8 @@ jobs:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
       run:  |
-          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
           ../../deploy.sh
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
           terraform validate
           terraform fmt -check
 
@@ -69,6 +69,6 @@ jobs:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
       run:  |
-          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
           ../../deploy.sh
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
           terraform plan
