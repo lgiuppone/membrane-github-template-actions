@@ -13,6 +13,10 @@ on:
         type: boolean
         required: false
         default: true
+      varFilePath:
+        description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
+        required: false
+        default: ./.env.secrets
     secrets:
       TF_API_TOKEN:
         required: true
@@ -20,10 +24,7 @@ on:
         required: true
       APP_DB_PASSWORD:
         required: true   
-    varFilePath:
-      description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
-      required: false
-      default: ./.env.secrets
+
 
 jobs:
   terraform:
