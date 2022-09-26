@@ -53,11 +53,6 @@ jobs:
           git config --global url."https://infra-membrane:${GH_PAT_TOKEN}@github.com/Lattice-Trade".insteadOf "https://github.com/Lattice-Trade"
           terraform init
 
-    - name: Set Enviroment
-      run: |
-        sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
-      shell: bash
-
     - name: Terraform plan
       id: plan
       working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
