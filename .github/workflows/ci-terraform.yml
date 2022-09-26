@@ -14,13 +14,11 @@ on:
         type: string
         description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
         required: false
-        default: ./.env.secrets
+        default: ./env.secrets
     secrets:
       TF_API_TOKEN:
         required: true
       GH_PAT_TOKEN:
-        required: true
-      APP_DB_PASSWORD:
         required: true
 
 jobs:
@@ -54,8 +52,7 @@ jobs:
       id: validate
       working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}      
       run:  |
           ../../deploy.sh
           sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
@@ -66,8 +63,7 @@ jobs:
       id: plan
       working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}     
       run:  |
           ../../deploy.sh
           sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
