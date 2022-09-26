@@ -11,6 +11,8 @@ on:
         type: boolean
       TF_SKIP:
         type: boolean
+        required: false
+        default: false
     secrets:
       TF_API_TOKEN:
         required: true
@@ -18,6 +20,10 @@ on:
         required: true
       APP_DB_PASSWORD:
         required: true
+    varFilePath:
+      description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
+      required: false
+      default: ./.env.secrets
 
 jobs:
   terraform:
@@ -53,6 +59,7 @@ jobs:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
       run:  |
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
           ../../deploy.sh
           terraform validate
           terraform fmt -check
@@ -64,5 +71,6 @@ jobs:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
         DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
       run:  |
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
           ../../deploy.sh
           terraform plan
