@@ -11,13 +11,19 @@ on:
         type: boolean
       TF_SKIP:
         type: boolean
+        required: false
+        default: true
     secrets:
       TF_API_TOKEN:
         required: true
       GH_PAT_TOKEN:
         required: true
       APP_DB_PASSWORD:
-        required: true       
+        required: true   
+    varFilePath:
+      description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
+      required: false
+      default: ./.env.secrets
 
 jobs:
   terraform:
@@ -47,13 +53,19 @@ jobs:
           git config --global url."https://infra-membrane:${GH_PAT_TOKEN}@github.com/Lattice-Trade".insteadOf "https://github.com/Lattice-Trade"
           terraform init
 
+    - name: Set Enviroment
+      run: |
+        sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
+      shell: bash
+
     - name: Terraform plan
       id: plan
       working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       env:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
+      #  DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
       run:  |
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
           ../../deploy.sh
           terraform plan
 
@@ -61,8 +73,8 @@ jobs:
       id: apply
       working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
       env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-        DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}        
+        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}       
       run:  |
+          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
           ../../deploy.sh
           terraform apply -auto-approve
