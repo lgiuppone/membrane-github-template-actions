@@ -51,18 +51,19 @@ jobs:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}      
       run:  |
           echo ${{ secrets.DB_PASSWORD_DEV }}
+               ${{ secrets.DB_PASSWORD_DEV }}
           echo "..."
-          ../../deploy.sh
+          bash -eux  ../../deploy.sh
           sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
-          terraform validate
-          terraform fmt -check
+#          terraform validate
+#          terraform fmt -check
 
-    - name: Terraform plan
-      id: plan
-      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
-      env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}     
-      run:  |
-          ../../deploy.sh
-          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
-          terraform plan
+#    - name: Terraform plan
+#      id: plan
+#      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+#      env:
+#        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}     
+#      run:  |
+#          ../../deploy.sh
+#          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
+#          terraform plan
