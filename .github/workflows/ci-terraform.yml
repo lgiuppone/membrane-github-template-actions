@@ -15,7 +15,7 @@ on:
         description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
         required: false
         default: ./env.secrets
-    secrets: inherit
+    
 
 jobs:
   terraform:
