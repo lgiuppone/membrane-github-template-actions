@@ -16,10 +16,7 @@ on:
         required: false
         default: ./env.secrets
     secrets:
-      TF_API_TOKEN:
-        required: true
-      GH_PAT_TOKEN:
-        required: true
+      secrets: inherit
 
 jobs:
   terraform:
