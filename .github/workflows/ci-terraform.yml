@@ -50,6 +50,8 @@ jobs:
       env:
         GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}      
       run:  |
+          echo ${{ secrets.DB_PASSWORD_DEV }}
+          echo "..."
           ../../deploy.sh
           sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV      
           terraform validate
