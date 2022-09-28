@@ -56,6 +56,10 @@ on:
         required: true
       NEW_RELIC_API_KEY:
         required: true
+      NEW_RELIC_APPLICATION_ID:
+        required: true
+      NEW_RELIC_WORKER_ID:
+        required: true
       SLACK_ALARMS_TOKEN:
         required: true
 

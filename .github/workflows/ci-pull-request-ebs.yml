@@ -3,10 +3,16 @@ name: Build & Test
 on:
   workflow_call:
     inputs:
+      HAS_UNIT_TEST:
+        required: true
+        type: boolean
       GH_BASE_REF:
         required: true
         type: string
       GH_HEAD_REF:
+        required: true
+        type: string
+      NODE_VERSION:
         required: true
         type: string
     secrets:
@@ -17,9 +23,6 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x]
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
@@ -27,7 +30,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Validate PR origin branch to develop
-        if: ${{ inputs.GH_BASE_REF == 'develop' && (!startsWith(inputs.GH_HEAD_REF, 'feature/') && !startsWith(inputs.GH_HEAD_REF, 'refactor/') && !startsWith(inputs.GH_HEAD_REF, 'fix/') && !startsWith(inputs.GH_HEAD_REF, 'migration/') && !startsWith(inputs.GH_HEAD_REF, 'release/') && !startsWith(inputs.GH_HEAD_REF, 'rc-feature/') && !startsWith(inputs.GH_HEAD_REF, 'backport/')) }}
+        if: ${{ inputs.GH_BASE_REF == 'develop' && (!startsWith(inputs.GH_HEAD_REF, 'feature/') && !startsWith(inputs.GH_HEAD_REF, 'enhancement/') && !startsWith(inputs.GH_HEAD_REF, 'refactor/') && !startsWith(inputs.GH_HEAD_REF, 'fix/') && !startsWith(inputs.GH_HEAD_REF, 'migration/') && !startsWith(inputs.GH_HEAD_REF, 'release/') && !startsWith(inputs.GH_HEAD_REF, 'rc-feature/') && !startsWith(inputs.GH_HEAD_REF, 'backport/')) }}
         uses: actions/github-script@v3
         with:
           script: |
@@ -56,15 +59,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+            node-version: ${{ inputs.NODE_VERSION }}
+            registry-url: https://registry.npmjs.org/
 
       - name: Code build
         run: npm ci
 
       - name: Run unit tests
+        if: inputs.HAS_UNIT_TEST
         run: npm test
 
       - name: Run lint
