@@ -32,18 +32,18 @@ jobs:
       - uses: jungwinter/split@v2
         id: split
         with:
-          msg: '${{ github.event.pull_request.title }}'
+          msg: '${{ inputs.GH_PR_TITLE }}'
 
       - name: Extract version from branch name
         run: |
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          BRANCH_NAME="${{ inputs.GH_PR_HEAD_REF }}"
 
       - name: Create Release
         uses: thomaseizinger/create-release@1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          target_commitish: ${{ inputs.GH_PR_HEAD_SHA }}
           tag_name: ${{ steps.split.outputs._2 }}
           name: ${{ steps.split.outputs._2 }}
           draft: false
@@ -88,6 +88,6 @@ jobs:
           # SENTRY_URL: https://sentry.io/
         with:
           environment: ${{ inputs.SENTRY_ENV }}
-          version: ${{ github.event.pull_request.merge_commit_sha }}
+          version: ${{ inputs.GH_PR_HEAD_SHA }}
           version_prefix: ${{ steps.split.outputs._2 }}
           
