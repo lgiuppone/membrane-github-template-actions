@@ -41,6 +41,7 @@ on:
         type: string
       NEW_RELIC_WORKER_ID:
         required: true
+        type: string
       NODE_VERSION:
         required: true
         type: string
