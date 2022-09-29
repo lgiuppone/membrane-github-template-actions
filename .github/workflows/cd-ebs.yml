@@ -18,7 +18,6 @@ on:
       BUCKET:
         required: true
         type: string
-        type: string
       GH_BRANCH_NAME:
         required: true
         type: string
