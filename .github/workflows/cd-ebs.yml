@@ -147,7 +147,7 @@ jobs:
       with:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-        applicationId: ${{ secrets.NEW_RELIC_APPLICATION_ID }}
+        applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
         revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Create New Relic deployment marker for Worker
@@ -155,7 +155,7 @@ jobs:
       with:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
         apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-        applicationId: ${{ secrets.NEW_RELIC_WORKER_ID }}
+        applicationId: ${{ inputs.NEW_RELIC_WORKER_ID }}
         revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
     - name: Notify slack success
