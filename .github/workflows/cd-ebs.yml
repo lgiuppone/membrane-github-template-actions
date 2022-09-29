@@ -37,10 +37,10 @@ on:
         required: true
         type: string
       NEW_RELIC_APPLICATION_ID:
-        required: true
+        required: false
         type: string
       NEW_RELIC_WORKER_ID:
-        required: true
+        required: false
         type: string
       NODE_VERSION:
         required: true
@@ -55,9 +55,9 @@ on:
       SLACK_ALARMS_TOKEN:
         required: true
       NEW_RELIC_ACCOUNT_ID:
-        required: true
+        required: false
       NEW_RELIC_API_KEY:
-        required: true
+        required: false
         
 jobs:
   cd:
