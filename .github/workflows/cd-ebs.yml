@@ -82,11 +82,13 @@ jobs:
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
   
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+          node-version: ${{ inputs.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
 
     - name: delete default cron
       run: rm -f cron.yaml
