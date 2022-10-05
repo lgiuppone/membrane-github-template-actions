@@ -1,0 +1,131 @@
+name: Build & test
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: true
+        type: boolean
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_BRANCH_NAME:
+        required: true
+        type: string
+      NODE_VERSION:
+        required: true
+        type: string
+      S3_BUCKET:
+        required: true
+        type: string
+      AWS_REGION:
+        required: true
+        type: string
+      CLOUDFRONT_ID:
+        required: true
+        type: string
+      REACT_APP_SENTRY_API_URL:
+        required: true
+        type: string
+      REACT_APP_API_URL:
+        required: true
+        type: string
+      REACT_APP_LOAN_API_URL:
+        required: true
+        type: string
+      REACT_APP_API_URL_NOTIFICATIONS_OLD:
+        required: true
+        type: string
+      REACT_APP_API_URL_NOTIFICATIONS:
+        required: true
+        type: string
+      ESLINT_NO_DEV_ERRORS:
+        required: true
+        type: boolean
+      DISABLE_ESLINT_PLUGIN:
+        required: true
+        type: boolean
+      REACT_APP_ENVIRONMENT:
+        required: true
+        type: string
+      REACT_APP_LOAN_API_URL_V2:
+        required: true
+        type: string
+      REACT_APP_TRADING_API_URL_V2:
+        required: true
+        type: string
+      REACT_APP_PINGDOM_SCRIPT:
+        required: true
+        type: string
+      REACT_APP_PINGDOM_SCRIPT_INTEGRITY:
+        required: true
+        type: string
+      REACT_APP_DISABLE_BLACKLIST:
+        required: true
+        type: boolean
+      REACT_APP_DISABLE_PAYMENT_FREQUENCY:
+        required: true
+        type: boolean
+      REACT_APP_DISABLE_REQUEST_CREATE_INSTITUTION_VIEW:
+        required: true
+        type: boolean
+      REACT_APP_DISABLE_SPEED_UP:
+        required: true
+        type: boolean
+      REACT_APP_BLOCKPASS_CLIENT_ID:
+        required: true
+        type: string
+      REACT_APP_GOOGLE_CAPTCHA_SECRET_KEY:
+        required: true
+        type: string
+      GIT_PKG_AUTH_TOKEN:
+        required: true
+        type: string
+      GENERATE_SOURCEMAP:
+        required: true
+        type: boolean
+      CI:
+        required: true
+        type: boolean
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  ci:
+    if: ${{ inputs.GH_PR_MERGED }} 
+    name: build & tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60    
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: ${{ inputs.GH_BRANCH_NAME }}
+
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-frontend
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v3
+      with:
+          node-version: ${{ inputs.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+
+    - name: Code build
+      run: npm ci
+
+    - name: Run unit tests
+      if: inputs.HAS_UNIT_TEST
+      run: npm test
+
+    - name: Run lint
+      run: npm run lint
