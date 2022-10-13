@@ -45,19 +45,6 @@ on:
       NODE_VERSION:
         required: true
         type: string
-    secrets:
-      NPM_TOKEN:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      NEW_RELIC_ACCOUNT_ID:
-        required: false
-      NEW_RELIC_API_KEY:
-        required: false
-      SLACK_ALARMS_TOKEN:
-        required: true
 
 jobs:
   cd:
@@ -111,11 +98,6 @@ jobs:
   
     - name: Code build
       run: npm ci --ignore-scripts
-
-    - name: DEBUG ENVIROMNENT
-      env:
-        IMAGE_TAG: ${{ inputs.GH_SHA }}
-      run: echo "DEBBUG STARTED" ; echo $NEXT_PUBLIC_API_URL_BACKOFFICE ; echo $IMAGE_TAG ; echo "DEBBUG FINISHED"
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-push-image
