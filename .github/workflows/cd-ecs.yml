@@ -112,6 +112,11 @@ jobs:
     - name: Code build
       run: npm ci --ignore-scripts
 
+    - name: DEBUG ENVIROMNENT
+      env:
+        IMAGE_TAG: ${{ inputs.GH_SHA }}
+      run: echo "DEBBUG STARTED" ; echo $NEXT_PUBLIC_API_URL_BACKOFFICE ; echo $IMAGE_TAG ; echo "DEBBUG FINISHED"
+
     - name: Build, and tag Docker image
       id: build-image
       env:
