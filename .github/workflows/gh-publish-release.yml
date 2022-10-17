@@ -12,6 +12,9 @@ on:
       GH_PR_HEAD_SHA:
         required: true
         type: string
+      SENTRY_ENV:
+        required: true
+        type: string
       SENTRY_PROJECT:
         required: true
         type: string
@@ -84,7 +87,7 @@ jobs:
           SENTRY_PROJECT: ${{ inputs.SENTRY_PROJECT }}
           # SENTRY_URL: https://sentry.io/
         with:
-          environment: lite-prod
+          environment: ${{ inputs.SENTRY_ENV }}
           version: ${{ inputs.GH_PR_HEAD_SHA }}
           version_prefix: ${{ steps.split.outputs._2 }}
           
