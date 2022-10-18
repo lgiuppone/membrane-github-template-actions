@@ -17,7 +17,6 @@ jobs:
           fetch-depth: 0
 
       - name: SonarQube Scan
-        if: ${{ inputs.HAS_CODE_REVIEW }}
         uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
