@@ -49,30 +49,6 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Merge main into staging branch
-        uses: thomaseizinger/create-pull-request@1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: main
-          base: staging
-          title: Merge main into staging branch
-          body: |
-            This PR merges the main branch back into staging.
-            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the staging branch.
-
-      - name: Merge main into develop branch
-        uses: thomaseizinger/create-pull-request@1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          head: main
-          base: develop
-          title: Merge main into develop branch
-          body: |
-            This PR merges the main branch back into develop.
-            This happens to ensure that the updates that happend on the release branch, i.e. CHANGELOG and manifest updates are also present on the develop branch.
-   
       - name: Checkout
         uses: actions/checkout@v3
         with:
