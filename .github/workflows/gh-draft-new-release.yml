@@ -49,7 +49,7 @@ jobs:
           git add package.json
           git commit --message "Prepare release ${{ inputs.GH_VERSION }}"
 
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
+          echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Push new branch release
         run: git push origin release/${{ inputs.GH_VERSION }}
