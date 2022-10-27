@@ -100,7 +100,16 @@ jobs:
     - name: delete default cron
       run: rm -f cron.yaml
 
-    - name: Select and set cron into code
+    - name: Select and set cron-dev into code
+      if: ${{ inputs.BACKEND_ENVIRONMENT == 'develop' }}
+      run: cat cron-dev.yml > cron.yaml
+
+    - name: Select and set cron-staging into code
+      if: ${{ inputs.BACKEND_ENVIRONMENT == 'staging' }}
+      run: cat cron-staging.yml > cron.yaml
+
+    - name: Select and set cron-prod into code
+      if: ${{ inputs.BACKEND_ENVIRONMENT == 'production' }}
       run: cat cron-prod.yml > cron.yaml
 
     - name: Replace Token in .npmrc
