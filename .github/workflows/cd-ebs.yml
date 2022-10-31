@@ -97,6 +97,14 @@ jobs:
           node-version: ${{ inputs.NODE_VERSION }}
           registry-url: https://registry.npmjs.org/
 
+    - name: Generate swagger doc
+      if: ${{ inputs.GH_ENV == 'develop' || inputs.GH_ENV == 'staging' }}
+      run: npx swagger-inline './**.js' --base ./swaggerBase.yaml > swaggerDoc.yaml
+
+    - name: Generate index.html docs
+      if: ${{ inputs.GH_ENV == 'develop' || inputs.GH_ENV == 'staging' }}
+      run: npx redoc-cli@0.13.2 bundle swaggerDoc.yaml --output docs/index.html
+
     - name: delete default cron
       run: rm -f cron.yaml
 
