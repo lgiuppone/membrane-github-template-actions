@@ -1,4 +1,6 @@
 ## About reusable workflows
+> IMPORTANT: This repo need to be public to start using owned reusable workflows (we dont store any sensitive data in this repo, only reusable steps of our pipelines)
+
 To avoid code duplication of GitHub Actions workflow files across thousands of repositories, we utilize reusable workflows. This allows us to DRY (don't repeat yourself) configurations, so we don't have to copy and paste workflows from one repository to another.
 
 ## Calling reusable workflows
