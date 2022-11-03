@@ -1,0 +1,18 @@
+name: DEBUG
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: true
+        type: boolean
+jobs:
+  debug:
+    name: debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env: 
+      NPM_TOKEN: ${{ inputs.NPM_TOKEN }}    
+    steps:
+      - name: Code build
+        run: echo $HAS_UNIT_TEST
