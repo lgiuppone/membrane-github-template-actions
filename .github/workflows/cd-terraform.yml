@@ -63,12 +63,12 @@ jobs:
       #sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
       #terraform plan
 
-      - name: Terraform apply
-        id: apply
-        working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
-        # env:
-          # GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-          # sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
-        run: |
-          ../../deploy.sh
-          terraform apply
+      # - name: Terraform apply
+      #   id: apply
+      #   working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+      #   # env:
+      #     # GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+      #     # sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
+      #   run: |
+      #     ../../deploy.sh
+      #     terraform apply
