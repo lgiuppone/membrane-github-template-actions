@@ -1,4 +1,4 @@
-name: Deploy to dev
+name: Update infra
 
 on:
   workflow_call:
@@ -15,7 +15,7 @@ on:
         default: true
       varFilePath:
         type: string
-        description: 'File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory.'
+        description: "File path to variable file or directory. Defaults to ./.github/variables/* if none specified and runs against each file in that directory."
         required: false
         default: ./env.secrets
     secrets:
@@ -24,52 +24,51 @@ on:
       GH_PAT_TOKEN:
         required: true
 
-
 jobs:
   terraform:
-    if: ${{ inputs.GH_PR_MERGED && !inputs.TF_SKIP }} 
+    if: ${{ inputs.GH_PR_MERGED && !inputs.TF_SKIP }}
     name: Terraform
     runs-on: ubuntu-latest
     environment: infra
     timeout-minutes: 60
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-    # Install the preferred version of Terraform CLI 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.2.0
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      # Install the preferred version of Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.2.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-    - name: Terraform Init
-      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
-      id: init
-      env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-      run:  |
+      - name: Terraform Init
+        working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+        id: init
+        env:
+          GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+        run: |
           git config --local --remove-section http."https://github.com/"
           git config --global url."https://infra-membrane:${GH_PAT_TOKEN}@github.com/Lattice-Trade".insteadOf "https://github.com/Lattice-Trade"
           terraform init
 
-    - name: Terraform plan
-      id: plan
-      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
-      env:
-        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
-      run:  |
-          echo $DB_PASSWORD
-#../../deploy.sh
-#sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
-#terraform plan
+      # - name: Terraform plan
+      #   id: plan
+      #   working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+      #   env:
+      #     GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+      #   run:  |
+      #       echo $DB_PASSWORD
+      #../../deploy.sh
+      #sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
+      #terraform plan
 
-#    - name: Terraform apply
-#      id: apply
-#      working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
-#      env:
-#        GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}       
-#      run:  |
-#          ../../deploy.sh
-#          sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
-#          terraform apply -auto-approve
+      - name: Terraform apply
+        id: apply
+        working-directory: ${{ inputs.TF_WORKING_DIRECTORY }}
+        # env:
+          # GH_PAT_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+          # sed "" ${{ inputs.varFilePath }} >> $GITHUB_ENV
+        run: |
+          ../../deploy.sh
+          terraform apply
