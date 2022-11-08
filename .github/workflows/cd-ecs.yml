@@ -70,13 +70,13 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
     
-    - uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: STARTED
-        color: good
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+    # - uses: Lattice-Trade/github-action-slack-notify-build@main
+    #   with:
+    #     channel: ${{ inputs.SLACK_CHANNEL }}
+    #     status: STARTED
+    #     color: good
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
 
     - name: Notify slack started
       uses: slackapi/slack-github-action@v1.23.0
