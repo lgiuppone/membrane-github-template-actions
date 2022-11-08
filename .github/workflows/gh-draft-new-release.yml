@@ -20,7 +20,7 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ inputs.GH_BRANCH }}
           fetch-depth: 0
