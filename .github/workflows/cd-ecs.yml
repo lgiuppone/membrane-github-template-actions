@@ -70,7 +70,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
     
-    - uses: Lattice-Trade/github-action-slack-notify-build@main
+    - uses: Lattice-Trade/github-action-slack-notify-build@master
       with:
         channel: ${{ inputs.SLACK_CHANNEL }}
         status: STARTED
@@ -84,7 +84,7 @@ jobs:
           ref: ${{ inputs.GH_BRANCH_NAME }} 
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@master
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -92,7 +92,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@master
   
     - name: Use cache dependencies
       uses: actions/cache@v3
@@ -146,14 +146,14 @@ jobs:
         
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      uses: aws-actions/amazon-ecs-render-task-definition@master
       with:
         task-definition: task-definition.json
         container-name: ${{ inputs.CONTAINER_NAME }}
         image: ${{ steps.build-push-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      uses: aws-actions/amazon-ecs-deploy-task-definition@master
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ inputs.ECS_SERVICE }}
