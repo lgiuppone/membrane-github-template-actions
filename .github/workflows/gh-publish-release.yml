@@ -39,7 +39,7 @@ jobs:
           BRANCH_NAME="${{ inputs.GH_PR_HEAD_REF }}"
 
       - name: Create Release
-        uses: thomaseizinger/create-release@1.0.0
+        uses: Lattice-Trade/create-release@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
