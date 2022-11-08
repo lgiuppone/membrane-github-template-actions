@@ -70,7 +70,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
     
-    - uses: Lattice-Trade/github-action-slack-notify-build@master
+    - uses: Lattice-Trade/github-action-slack-notify-build@main
       with:
         channel: ${{ inputs.SLACK_CHANNEL }}
         status: STARTED
@@ -92,7 +92,7 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@master
+      uses: aws-actions/amazon-ecr-login@main
   
     - name: Use cache dependencies
       uses: actions/cache@v3
