@@ -70,39 +70,13 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
     
-    # - uses: Lattice-Trade/github-action-slack-notify-build@main
-    #   with:
-    #     channel: ${{ inputs.SLACK_CHANNEL }}
-    #     status: STARTED
-    #     color: good
-    #   env:
-    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-
-    - name: Notify slack started
-      uses: slackapi/slack-github-action@v1.23.0
+    - uses: Lattice-Trade/github-action-slack-notify-build@main
       with:
-        # The following message update step does not accept a channel name.
-        # Setting a channel ID here for consistency is highly recommended.
-        channel-id: ${{ inputs.SLACK_CHANNEL }}
-        payload: |
-          {
-            "text": "Deployment started (In Progress)",
-            "attachments": [
-              {
-                "pretext": "Deployment started",
-                "color": "dbab09",
-                "fields": [
-                  {
-                    "title": "Status",
-                    "short": true,
-                    "value": "In Progress"
-                  }
-                ]
-              }
-            ]
-          }
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: STARTED
+        color: good
       env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN}}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
 
     - name: Checkout
       uses: actions/checkout@v3
@@ -197,76 +171,20 @@ jobs:
 
     - name: Notify slack success
       if: success()
-      uses: slackapi/slack-github-action@v1.23.0
-      with:
-        # Unlike the step posting a new message, this step does not accept a channel name.
-        # Please use a channel ID, not a name here.
-        channel-id: ${{ inputs.SLACK_CHANNEL }}
-        # update-ts: ${{ steps.slack.outputs.ts }}
-        payload: |
-          {
-            "text": "Deployment finished (Completed)",
-            "attachments": [
-              {
-                "pretext": "Deployment finished",
-                "color": "28a745",
-                "fields": [
-                  {
-                    "title": "Status",
-                    "short": true,
-                    "value": "SUCCESS"
-                  }
-                ]
-              }
-            ]
-          }
       env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN}}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: SUCCESS
+        color: good
 
-    # - name: Notify slack success
-    #   if: success()
-    #   env:
-    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-    #   uses: Lattice-Trade/github-action-slack-notify-build@main
-    #   with:
-    #     channel: ${{ inputs.SLACK_CHANNEL }}
-    #     status: SUCCESS
-    #     color: good
-
-    - name: Notify slack error
+    - name: Notify slack fail
       if: failure()
-      uses: slackapi/slack-github-action@v1.23.0
-      with:
-        # Unlike the step posting a new message, this step does not accept a channel name.
-        # Please use a channel ID, not a name here.
-        channel-id: ${{ inputs.SLACK_CHANNEL }}
-        # update-ts: ${{ steps.slack.outputs.ts }}
-        payload: |
-          {
-            "text": "Deployment failed",
-            "attachments": [
-              {
-                "pretext": "Deployment finished",
-                "color": "FF0000",
-                "fields": [
-                  {
-                    "title": "Status",
-                    "short": true,
-                    "value": "FAILED"
-                  }
-                ]
-              }
-            ]
-          }
       env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN}}
-
-    # - name: Notify slack fail
-    #   if: failure()
-    #   env:
-    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-    #   uses: Lattice-Trade/github-action-slack-notify-build@main
-    #   with:
-    #     channel: ${{ inputs.SLACK_CHANNEL }}
-    #     status: FAILED
-    #     color: danger
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: FAILED
+        color: danger
