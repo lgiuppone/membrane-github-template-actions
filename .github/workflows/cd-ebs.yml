@@ -74,7 +74,7 @@ jobs:
       with:
           ref: ${{ inputs.GH_BRANCH_NAME }} 
 
-    - uses: voxmedia/github-action-slack-notify-build@v1
+    - uses: Lattice-Trade/github-action-slack-notify-build@main
       with:
         channel: ${{ inputs.SLACK_CHANNEL }}
         status: STARTED
@@ -179,7 +179,7 @@ jobs:
       if: success()
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: voxmedia/github-action-slack-notify-build@v1
+      uses: Lattice-Trade/github-action-slack-notify-build@main
       with:
         channel: ${{ inputs.SLACK_CHANNEL }}
         status: SUCCESS
@@ -189,7 +189,7 @@ jobs:
       if: failure()
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: voxmedia/github-action-slack-notify-build@v1
+      uses: Lattice-Trade/github-action-slack-notify-build@main
       with:
         channel: ${{ inputs.SLACK_CHANNEL }}
         status: FAILED
