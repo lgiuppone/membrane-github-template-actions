@@ -1,0 +1,56 @@
+name: Build & test
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: true
+        type: boolean
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_BRANCH_NAME:
+        required: true
+        type: string
+      NODE_VERSION:
+        required: true
+        type: string
+
+jobs:
+  ci:
+    if: ${{ inputs.GH_PR_MERGED }}
+    name: build & tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: ${{ inputs.GH_BRANCH_NAME }}
+
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v3
+      with:
+          node-version: ${{ inputs.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+
+    - name: Code build
+      run: npm ci --ignore-scripts
+
+    - name: Run unit tests
+      if: inputs.HAS_UNIT_TEST
+      run: npm test
+
+    - name: Run lint
+      run: npm run lint
