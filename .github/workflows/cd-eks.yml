@@ -161,8 +161,8 @@ jobs:
         valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
         propertyPath: $["${{ env.ECR_REPOSITORY }}"].image.tag
         value: ${{ steps.image-name.outputs.IMAGE_TAG }}
-        branch: develop
-        masterBranchName: develop
+        branch: ${{ inputs.GH_BRANCH_NAME }}
+        masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
         targetBranch: argocd-${{ inputs.GH_ENV }}
         createPR: false       
         updateFile: true
