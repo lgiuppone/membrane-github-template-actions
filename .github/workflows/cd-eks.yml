@@ -57,6 +57,7 @@ jobs:
       uses: actions/checkout@v3
       with:
           ref: ${{ inputs.GH_BRANCH_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Sets env vars for nonprod
       if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
@@ -109,7 +110,6 @@ jobs:
         #Set image name and tag as output
         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPOSITORY" >> $GITHUB_OUTPUT
-        echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         
     - name: Build, tag, and push image to Amazon ECR
