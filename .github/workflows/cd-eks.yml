@@ -6,19 +6,7 @@ on:
       AWS_REGION:
         required: true
         type: string
-      ECR_REPOSITORY:
-        required: true
-        type: string
-      TASK_DEFINITION:
-        required: true
-        type: string
-      ECS_SERVICE:
-        required: true
-        type: string
-      ECS_CLUSTER:
-        required: true
-        type: string
-      CONTAINER_NAME:
+      APP_NAME:
         required: true
         type: string
       GH_BRANCH_NAME:
@@ -55,8 +43,7 @@ jobs:
     environment: ${{ inputs.GH_ENV }} 
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      ECR_REPOSITORY: "${{ github.event.repository.name }}-${{ inputs.GH_ENV }}"
-      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      ECR_REPOSITORY: "blockchain-proxyv2-dev" #"${{ inputs.APP_NAME }}-${{ inputs.GH_ENV }}"
     steps:
     
     - uses: Lattice-Trade/github-action-slack-notify-build@main
@@ -70,13 +57,28 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-          ref: ${{ inputs.GH_BRANCH_NAME }} 
+          ref: ${{ inputs.GH_BRANCH_NAME }}
+
+    - name: Sets env vars for nonprod
+      run: |
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
+        echo "ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY_URL_NONPROD }}" >> $GITHUB_ENV
+      if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
+
+    # This step is run when the tag is staging-XXX
+    - name: Sets env vars for prod
+      run: |
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
+        echo "ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY_URL_PROD }}" >> $GITHUB_ENV
+      if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@master
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ inputs.AWS_REGION }}
 
     - name: Login to Amazon ECR
@@ -114,6 +116,43 @@ jobs:
         docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
         docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  # checkIfAppExist:
+  #   name: Check if app exist in argocd
+  #   runs-on: [self-hosted, linux, nodes]
+  #   needs: buildAndPush
+  #   container: ghcr.io/jodybro/argocd-cli:1.1.0
+  #   outputs:
+  #     APP_EXIST: ${{ steps.check-if-app-exist.outputs.APP_EXIST }}
+  #   steps:
+  #     - name: install jq
+  #       run: sudo apt-get install jq -y
+
+  #     - name: Login to argocd
+  #       run: |
+  #         argocd login ${{ secrets.ARGOCD_URL }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+
+  #     - name: Check if app exist in argocd
+  #       id: check-if-app-exist
+  #       run: |
+  #         #Check if app exist in argocd
+  #         APP_EXIST=$(argocd app list --project ${{ env.ENVIRONMENT }} -o json --grpc-web | jq -r '.[].metadata.name' | grep -c ${{ env.ENVIRONMENT }}-${{ github.event.repository.name }})
+  #         echo "APP_EXIST=$APP_EXIST" >> $GITHUB_OUTPUT
+      
+  #     - name: Create app if not exist
+  #       if: ${{ steps.check-if-app-exist.outputs.APP_EXIST == 0 }}
+  #       run: |
+  #         #Create app if not exist
+  #         argocd app create ${{ env.ENVIRONMENT }}-${{ github.event.repository.name }} \
+  #         --repo https://github.com/${{ github.repository }}.git \
+  #         --revision ${{ github.ref }} \
+  #         --dest-server https://kubernetes.default.svc \
+  #         --path .infra/kustomize/environments/${{ env.ENVIRONMENT }} \
+  #         --config-management-plugin argocd-vault-plugin-kustomize \
+  #         --sync-policy automated \
+  #         --self-heal \
+  #         --grpc-web \
+  #         --project ${{ env.ENVIRONMENT }} \
 
     - name: Sync with ArgoCD
       uses: fjogeleit/yaml-update-action@main
