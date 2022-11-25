@@ -129,7 +129,7 @@ jobs:
         value: ${{ steps.image-name.outputs.IMAGE_TAG }}
         branch: ${{ inputs.GH_BRANCH_NAME }}
         masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
-        targetBranch: argocd-${{ inputs.GH_ENV }}
+        targetBranch: ${{ inputs.GH_BRANCH_NAME }}
         createPR: false       
         updateFile: true
 
