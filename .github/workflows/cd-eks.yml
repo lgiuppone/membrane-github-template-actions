@@ -120,42 +120,6 @@ jobs:
         docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
         echo "IMAGE_FULL_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  # checkIfAppExist:
-  #   name: Check if app exist in argocd
-  #   runs-on: [self-hosted, linux, nodes]
-  #   needs: buildAndPush
-  #   container: ghcr.io/jodybro/argocd-cli:1.1.0
-  #   outputs:
-  #     APP_EXIST: ${{ steps.check-if-app-exist.outputs.APP_EXIST }}
-  #   steps:
-  #     - name: install jq
-  #       run: sudo apt-get install jq -y
-
-  #     - name: Login to argocd
-  #       run: |
-  #         argocd login ${{ secrets.ARGOCD_URL }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-
-  #     - name: Check if app exist in argocd
-  #       id: check-if-app-exist
-  #       run: |
-  #         #Check if app exist in argocd
-  #         APP_EXIST=$(argocd app list --project ${{ env.ENVIRONMENT }} -o json --grpc-web | jq -r '.[].metadata.name' | grep -c ${{ env.ENVIRONMENT }}-${{ github.event.repository.name }})
-  #         echo "APP_EXIST=$APP_EXIST" >> $GITHUB_OUTPUT
-      
-  #     - name: Create app if not exist
-  #       if: ${{ steps.check-if-app-exist.outputs.APP_EXIST == 0 }}
-  #       run: |
-  #         #Create app if not exist
-  #         argocd app create ${{ env.ENVIRONMENT }}-${{ github.event.repository.name }} \
-  #         --repo https://github.com/${{ github.repository }}.git \
-  #         --revision ${{ github.ref }} \
-  #         --dest-server https://kubernetes.default.svc \
-  #         --path .infra/kustomize/environments/${{ env.ENVIRONMENT }} \
-  #         --config-management-plugin argocd-vault-plugin-kustomize \
-  #         --sync-policy automated \
-  #         --self-heal \
-  #         --grpc-web \
-  #         --project ${{ env.ENVIRONMENT }} \
 
     - name: Sync with ArgoCD
       uses: fjogeleit/yaml-update-action@main
@@ -168,31 +132,6 @@ jobs:
         targetBranch: argocd-${{ inputs.GH_ENV }}
         createPR: false       
         updateFile: true
-    # - name: Build, tag, and push image to Amazon ECR
-    #   id: build-push-image
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    #     ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-    #     IMAGE_TAG: ${{ inputs.GH_SHA }}
-    #   run: |
-    #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . --build-arg NPM_TOKEN=${NPM_TOKEN}
-    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-    # - name: Run Trivy vulnerability scanner
-    #   uses: aquasecurity/trivy-action@master
-    #   with:
-    #       image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}'
-    #       format: 'table'
-    #       exit-code: '0'
-    #       ignore-unfixed: true
-    #       vuln-type: 'os,library'
-    #       severity: 'CRITICAL,HIGH'
-    #   env:
-    #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #       ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}          
-    #       AWS_DEFAULT_REGION: ${{ inputs.AWS_REGION }}
 
     - name: Create New Relic deployment marker
       uses: newrelic/deployment-marker-action@v1
