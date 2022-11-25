@@ -60,19 +60,19 @@ jobs:
           ref: ${{ inputs.GH_BRANCH_NAME }}
 
     - name: Sets env vars for nonprod
+      if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
       run: |
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
-        echo "ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY_URL_NONPROD }}" >> $GITHUB_ENV
-      if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
+        echo "ECR_REGISTRY=916775992448.dkr.ecr.us-east-2.amazonaws.com" >> $GITHUB_ENV
 
     # This step is run when the tag is staging-XXX
     - name: Sets env vars for prod
+      if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
       run: |
         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
-        echo "ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY_URL_PROD }}" >> $GITHUB_ENV
-      if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
+        echo "ECR_REGISTRY=133452444714.dkr.ecr.us-east-2.amazonaws.com" >> $GITHUB_ENV
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@master
