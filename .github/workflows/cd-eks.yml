@@ -6,7 +6,7 @@ on:
       AWS_REGION:
         required: true
         type: string
-      APP_NAME:
+      ECR_NAME:
         required: true
         type: string
       GH_BRANCH_NAME:
@@ -43,7 +43,6 @@ jobs:
     environment: ${{ inputs.GH_ENV }} 
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      ECR_REPOSITORY: "blockchain-proxyv2-dev" #"${{ inputs.APP_NAME }}-${{ inputs.GH_ENV }}"
     steps:
     
     - uses: Lattice-Trade/github-action-slack-notify-build@main
@@ -107,7 +106,8 @@ jobs:
       id: image-name
       run: |
         #Set image name and tag as output
-        echo "IMAGE_NAME=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
+        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/${{ env.ECR_NAME }}" >> $GITHUB_OUTPUT
         echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         
     - name: Build, tag, and push image to Amazon ECR
