@@ -122,12 +122,12 @@ jobs:
       uses: fjogeleit/yaml-update-action@main
       with:
         valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
-        propertyPath: '${{ env.ECR_REPOSITORY }}.image.tag'
+        propertyPath: $["${{ env.ECR_REPOSITORY }}"].image.tag
         value: ${{ steps.image-name.outputs.IMAGE_TAG }}
         branch: ${{ inputs.GH_BRANCH_NAME }}
         masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
         targetBranch: ${{ inputs.GH_BRANCH_NAME }}
-        createPR: 'false'       
+        createPR: false       
         updateFile: true
 
     - name: Create New Relic deployment marker
