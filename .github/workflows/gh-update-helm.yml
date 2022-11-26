@@ -44,7 +44,7 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
-          git pull
+          git pull origin argocd-${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
           
       - name: List infra files
