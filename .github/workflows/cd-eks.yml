@@ -118,17 +118,17 @@ jobs:
         docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
         docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
 
-    - name: Sync with ArgoCD
-      uses: fjogeleit/yaml-update-action@main
-      with:
-        valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
-        propertyPath: $["blockchain-proxy"].image.tag
-        value: ${{ steps.image-name.outputs.IMAGE_TAG }}
-        branch: ${{ inputs.GH_BRANCH_NAME }}
-        masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
-        targetBranch: ${{ inputs.GH_BRANCH_NAME }}
-        createPR: false       
-        updateFile: true
+    # - name: Sync with ArgoCD
+    #   uses: fjogeleit/yaml-update-action@main
+    #   with:
+    #     valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
+    #     propertyPath: $["blockchain-proxy"].image.tag
+    #     value: ${{ steps.image-name.outputs.IMAGE_TAG }}
+    #     branch: ${{ inputs.GH_BRANCH_NAME }}
+    #     masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
+    #     targetBranch: ${{ inputs.GH_BRANCH_NAME }}
+    #     createPR: false       
+    #     updateFile: true
 
     - name: Create New Relic deployment marker
       uses: newrelic/deployment-marker-action@v1
