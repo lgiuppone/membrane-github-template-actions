@@ -1,0 +1,59 @@
+name: draft new release
+
+on:
+  workflow_call:
+    inputs:
+      GH_BRANCH:
+        required: true
+        type: string
+      GH_ENV:
+        required: true
+        type: string
+      HELM_NAME:
+        required: true
+        type: string
+      HELM_VERSION:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  update-helm:
+    name: "Update helm & push"
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.GH_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release branch
+        run: |
+          git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
+          git status
+
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub actions"
+          git config user.email noreply@github.com
+
+      - name: Merge from ${{ inputs.GH_BRANCH }}
+        run: |
+          git merge origin/${{ inputs.GH_BRANCH }}
+          
+      - name: Sync with ArgoCD
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
+          propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
+          value: ${{ inputs.HELM_VERSION }}
+          branch: argocd-${{ inputs.GH_BRANCH }}
+          masterBranchName: argocd-${{ inputs.GH_BRANCH }}
+          targetBranch: argocd-${{ inputs.GH_BRANCH }}
+          createPR: false       
+          updateFile: true
