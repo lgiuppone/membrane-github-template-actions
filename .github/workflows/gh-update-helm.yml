@@ -35,6 +35,7 @@ jobs:
       - name: Create release branch
         run: |
           git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
+          git pull origin ${{ inputs.GH_BRANCH }}
           git status
 
       - name: Initialize mandatory git config
