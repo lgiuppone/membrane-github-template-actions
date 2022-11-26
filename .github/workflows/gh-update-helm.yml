@@ -46,6 +46,10 @@ jobs:
         run: |
           git merge origin/${{ inputs.GH_BRANCH }}
           
+      - name: List infra files
+        run: |
+          ls -R .infra
+
       - name: Sync with ArgoCD
         uses: fjogeleit/yaml-update-action@main
         with:
