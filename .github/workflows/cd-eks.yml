@@ -43,6 +43,9 @@ jobs:
     environment: ${{ inputs.GH_ENV }} 
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    outputs:
+      IMAGE_NAME: ${{ steps.image-name.outputs.IMAGE_NAME }}
+      IMAGE_TAG: ${{ steps.image-name.outputs.IMAGE_TAG }}
     steps:
     
     - uses: Lattice-Trade/github-action-slack-notify-build@main
