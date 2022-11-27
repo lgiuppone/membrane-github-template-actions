@@ -50,6 +50,7 @@ jobs:
           
       - name: List infra files
         run: |
+          echo "${{ inputs.HELM_VERSION }}"
           ls -R .infra
 
       - name: Sync with ArgoCD
