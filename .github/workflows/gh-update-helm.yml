@@ -15,9 +15,6 @@ on:
       HELM_VERSION:
         required: true
         type: string
-    secrets:
-      NPM_TOKEN:
-        required: true
 
 jobs:
   update-helm:
