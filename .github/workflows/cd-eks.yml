@@ -35,10 +35,10 @@ on:
         type: string
     outputs:
       IMAGE_NAME:
-        description: "The first output string"
+        description: "The image name"
         value: ${{ jobs.cd.outputs.IMAGE_NAME }}
       IMAGE_TAG:
-        description: "The second output string"
+        description: "The image tag"
         value: ${{ jobs.cd.outputs.IMAGE_TAG }}
 
 jobs:
