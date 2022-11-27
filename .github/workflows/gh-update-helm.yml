@@ -44,6 +44,7 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
+          git config pull.rebase false
           git pull origin argocd-${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
           
