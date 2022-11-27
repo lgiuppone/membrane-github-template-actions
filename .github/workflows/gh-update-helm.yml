@@ -44,11 +44,6 @@ jobs:
           git config pull.rebase false
           git pull origin argocd-${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
-          
-      - name: List infra files
-        run: |
-          echo "${{ inputs.HELM_VERSION }}"
-          ls -R .infra
 
       - name: Sync with ArgoCD
         uses: fjogeleit/yaml-update-action@main
