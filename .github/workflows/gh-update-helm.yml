@@ -48,14 +48,16 @@ jobs:
       - name: Upgrade Tag ArgoCD
         uses: fjogeleit/yaml-update-action@main
         with:
-          valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
+          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
           propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
           value: ${{ inputs.IMAGE_VERSION }}
-          createPR: false       
+          createPR: false
           commitChange: true
-          branch: ${{ inputs.GH_BRANCH }}
-          masterBranchName: ${{ inputs.GH_BRANCH }}
-          targetBranch: argocd-${{ inputs.GH_BRANCH }}
+          message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
+          branch: argocd-${{ inputs.GH_BRANCH }}
+          # masterBranchName: ${{ inputs.GH_BRANCH }}
+          # targetBranch: argocd-${{ inputs.GH_BRANCH }}
+          # updateFile: true
 
 
       # - name: Commit manifest files
