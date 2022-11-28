@@ -53,7 +53,10 @@ jobs:
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false       
           commitChange: false
+          branch: ${{ inputs.GH_BRANCH }}
+          masterBranchName: ${{ inputs.GH_BRANCH }}
           targetBranch: argocd-${{ inputs.GH_BRANCH }}
+          updateFile: true  
 
       # - name: Commit manifest files
       #   id: make-commit
