@@ -43,129 +43,127 @@ on:
 
 jobs:
   cd:
-    if: ${{ inputs.GH_PR_MERGED }} 
-    name: deploy to ${{ inputs.GH_ENV }} 
+    if: ${{ inputs.GH_PR_MERGED }}
+    name: deploy to ${{ inputs.GH_ENV }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: ${{ inputs.GH_ENV }} 
+    environment: ${{ inputs.GH_ENV }}
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     outputs:
       IMAGE_NAME: ${{ steps.image-name.outputs.IMAGE_NAME }}
       IMAGE_TAG: ${{ steps.image-name.outputs.IMAGE_TAG }}
     steps:
-    
-    - uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: STARTED
-        color: good
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      - uses: Lattice-Trade/github-action-slack-notify-build@main
+        with:
+          channel: ${{ inputs.SLACK_CHANNEL }}
+          status: STARTED
+          color: good
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
 
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
           ref: ${{ inputs.GH_BRANCH_NAME }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Sets env vars for nonprod
-      if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
-        echo "ECR_REPOSITORY=${{ inputs.ECR_NAME }}" >> $GITHUB_ENV
+      - name: Sets env vars for nonprod
+        if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${{ inputs.ECR_NAME }}" >> $GITHUB_ENV
 
-    # This step is run when the tag is staging-XXX
-    - name: Sets env vars for prod
-      if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
-        echo "ECR_REPOSITORY=${{ inputs.ECR_NAME }}" >> $GITHUB_ENV
+      # This step is run when the tag is staging-XXX
+      - name: Sets env vars for prod
+        if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${{ inputs.ECR_NAME }}" >> $GITHUB_ENV
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@master
-      with:
-        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.AWS_REGION }}
-        mask-aws-account-id: 'no'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.AWS_REGION }}
+          mask-aws-account-id: "no"
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@main
-  
-    - name: Use cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@main
 
-    - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/setup-node@v3
-      with:
-          node-version: ${{ inputs.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org/
-  
-    - name: Code build
-      run: npm ci --ignore-scripts
+      # - name: Use cache dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.npm
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-node-
 
-    - name: Generate image name and tag
-      id: image-name
-      run: |
-        #Set image name and tag as output
-        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-        echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPOSITORY" >> $GITHUB_OUTPUT
-        echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-push-image
-      run: |
-        docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
-        docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
+      # - name: Install dependencies
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: ${{ inputs.NODE_VERSION }}
+      #     registry-url: https://registry.npmjs.org/
 
+      # - name: Code build
+      #   run: npm ci --ignore-scripts
 
-    # - name: Sync with ArgoCD
-    #   uses: fjogeleit/yaml-update-action@main
-    #   with:
-    #     valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
-    #     propertyPath: $["blockchain-proxy"].image.tag
-    #     value: ${{ steps.image-name.outputs.IMAGE_TAG }}
-    #     branch: ${{ inputs.GH_BRANCH_NAME }}
-    #     masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
-    #     targetBranch: ${{ inputs.GH_BRANCH_NAME }}
-    #     createPR: false       
-    #     updateFile: true
+      - name: Generate image name and tag
+        id: image-name
+        run: |
+          #Set image name and tag as output
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPOSITORY" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-    # - name: Create New Relic deployment marker
-    #   uses: newrelic/deployment-marker-action@v1
-    #   continue-on-error: true
-    #   with:
-    #     accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-    #     apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-    #     applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
-    #     revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-push-image
+        run: |
+          docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
+          docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
 
-    - name: Notify slack success
-      if: success()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: SUCCESS
-        color: good
+      # - name: Sync with ArgoCD
+      #   uses: fjogeleit/yaml-update-action@main
+      #   with:
+      #     valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
+      #     propertyPath: $["blockchain-proxy"].image.tag
+      #     value: ${{ steps.image-name.outputs.IMAGE_TAG }}
+      #     branch: ${{ inputs.GH_BRANCH_NAME }}
+      #     masterBranchName: ${{ inputs.GH_BRANCH_NAME }}
+      #     targetBranch: ${{ inputs.GH_BRANCH_NAME }}
+      #     createPR: false
+      #     updateFile: true
 
-    - name: Notify slack fail
-      if: failure()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: FAILED
-        color: danger
+      # - name: Create New Relic deployment marker
+      #   uses: newrelic/deployment-marker-action@v1
+      #   continue-on-error: true
+      #   with:
+      #     accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      #     apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+      #     applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
+      #     revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+
+      - name: Notify slack success
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+        uses: Lattice-Trade/github-action-slack-notify-build@main
+        with:
+          channel: ${{ inputs.SLACK_CHANNEL }}
+          status: SUCCESS
+          color: good
+
+      - name: Notify slack fail
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+        uses: Lattice-Trade/github-action-slack-notify-build@main
+        with:
+          channel: ${{ inputs.SLACK_CHANNEL }}
+          status: FAILED
+          color: danger
