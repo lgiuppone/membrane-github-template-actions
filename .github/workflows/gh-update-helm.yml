@@ -12,7 +12,7 @@ on:
       HELM_NAME:
         required: true
         type: string
-      HELM_VERSION:
+      IMAGE_VERSION:
         required: true
         type: string
 
@@ -53,12 +53,13 @@ jobs:
           value: ${{ inputs.HELM_VERSION }}
           createPR: false       
           commitChange: false
+          targetBranch: argocd-${{ inputs.GH_BRANCH }}
 
-      - name: Commit manifest files
-        id: make-commit
-        run: |
-          git add .
-          git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
+      # - name: Commit manifest files
+      #   id: make-commit
+      #   run: |
+      #     git add .
+      #     git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
-      - name: Push new branch release
-        run: git push origin argocd-${{ inputs.GH_BRANCH }}
+      # - name: Push new branch release
+      #   run: git push origin argocd-${{ inputs.GH_BRANCH }}
