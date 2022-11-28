@@ -45,12 +45,12 @@ jobs:
           git pull origin argocd-${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
 
-      - name: Sync with ArgoCD
+      - name: Upgrade Tag ArgoCD
         uses: fjogeleit/yaml-update-action@main
         with:
           valueFile: '.infra/${{ inputs.GH_ENV }}/values.yaml'
           propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
-          value: ${{ inputs.HELM_VERSION }}
+          value: ${{ inputs.IMAGE_VERSION }}
           createPR: false       
           commitChange: false
           targetBranch: argocd-${{ inputs.GH_BRANCH }}
