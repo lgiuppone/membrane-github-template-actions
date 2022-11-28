@@ -52,11 +52,11 @@ jobs:
           propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false       
-          commitChange: false
+          commitChange: true
           branch: ${{ inputs.GH_BRANCH }}
           masterBranchName: ${{ inputs.GH_BRANCH }}
           targetBranch: argocd-${{ inputs.GH_BRANCH }}
-          updateFile: true  
+
 
       # - name: Commit manifest files
       #   id: make-commit
