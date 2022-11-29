@@ -29,10 +29,23 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create release branch
+      - name: validate argocd-${{ inputs.GH_BRANCH }} branch exists
+        id: validate-branch
+        run: |
+          echo "EXIT_CODE_BRANCH=$(git ls-remote --exit-code --heads origin $BRANCH >/dev/null 2>&1)" >> $GITHUB_OUTPUT
+
+      - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
+        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == '0' }}
+        run: |
+          git checkout argocd-${{ inputs.GH_BRANCH }}
+          git config pull.rebase false
+          git pull origin argocd-${{ inputs.GH_BRANCH }}
+          git status
+        
+      - name: Create argocd-${{ inputs.GH_BRANCH }} branch
+        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == '2' }}
         run: |
           git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
-          git checkout argocd-${{ inputs.GH_BRANCH }}
           git status
 
       - name: Initialize mandatory git config
@@ -42,8 +55,6 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
-          git config pull.rebase false
-          git pull origin argocd-${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
 
       - name: Upgrade Tag ArgoCD
