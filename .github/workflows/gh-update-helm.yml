@@ -37,7 +37,7 @@ jobs:
           echo "EXIT_CODE_BRANCH=$?" >> $GITHUB_OUTPUT
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
-        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == '0' }}
+        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == 0 }}
         run: |
           git checkout argocd-${{ inputs.GH_BRANCH }}
           git config pull.rebase false
@@ -45,7 +45,7 @@ jobs:
           git status
         
       - name: Create argocd-${{ inputs.GH_BRANCH }} branch
-        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == '2' }}
+        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == 2 }}
         run: |
           git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
           git status
