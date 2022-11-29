@@ -38,9 +38,8 @@ jobs:
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
         run: |
-          git checkout argocd-${{ inputs.GH_BRANCH }}
+          git checkout origin/argocd-${{ inputs.GH_BRANCH }}
           git config pull.rebase false
-          git pull origin argocd-${{ inputs.GH_BRANCH }}
           git status
         
       - name: Create argocd-${{ inputs.GH_BRANCH }} branch
@@ -56,6 +55,7 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
+          git fetch origin/${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
 
       - name: Upgrade Tag ArgoCD
@@ -76,7 +76,6 @@ jobs:
       - name: Commit manifest files
         id: make-commit
         run: |
-          git push
           git add .
           git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
