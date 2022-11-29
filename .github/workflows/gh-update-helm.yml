@@ -61,11 +61,11 @@ jobs:
           # updateFile: true
 
 
-      # - name: Commit manifest files
-      #   id: make-commit
-      #   run: |
-      #     git add .
-      #     git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
+      - name: Commit manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
-      # - name: Push new branch release
-      #   run: git push origin argocd-${{ inputs.GH_BRANCH }}
+      - name: Push new branch release
+        run: git push origin argocd-${{ inputs.GH_BRANCH }}
