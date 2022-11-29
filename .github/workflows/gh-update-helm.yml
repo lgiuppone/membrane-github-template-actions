@@ -37,10 +37,15 @@ jobs:
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
-        run: |
-          git switch argocd-${{ inputs.GH_BRANCH }}
-          git config pull.rebase false
-          git status
+        uses: actions/checkout@v3
+        with:
+          ref: argocd-${{ inputs.GH_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+        # run: |
+        #   git switch argocd-${{ inputs.GH_BRANCH }}
+        #   git config pull.rebase false
+        #   git status
         
       - name: Create argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF == '' }}
@@ -56,7 +61,6 @@ jobs:
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
           git merge origin/${{ inputs.GH_BRANCH }}
-          git push
 
       - name: Upgrade Tag ArgoCD
         uses: fjogeleit/yaml-update-action@main
@@ -65,19 +69,19 @@ jobs:
           propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
-          commitChange: false
+          commitChange: true
           message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-          # branch: argocd-${{ inputs.GH_BRANCH }}
+          branch: argocd-${{ inputs.GH_BRANCH }}
           # masterBranchName: ${{ inputs.GH_BRANCH }}
           # targetBranch: argocd-${{ inputs.GH_BRANCH }}
           # updateFile: true
 
 
-      - name: Commit manifest files
-        id: make-commit
-        run: |
-          git add .
-          git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
+      # - name: Commit manifest files
+      #   id: make-commit
+      #   run: |
+      #     git add .
+      #     git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
-      - name: Push new branch release
-        run: git push origin argocd-${{ inputs.GH_BRANCH }}
+      # - name: Push new branch release
+      #   run: git push origin argocd-${{ inputs.GH_BRANCH }}
