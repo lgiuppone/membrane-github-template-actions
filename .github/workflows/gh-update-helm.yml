@@ -33,24 +33,21 @@ jobs:
         continue-on-error: true
         id: validate-branch
         run: |
-          git ls-remote --exit-code --heads origin 'argocd-${{ inputs.GH_BRANCH }}' >/dev/null 2>&1
-          echo "EXIT_CODE_BRANCH=$?" >> $GITHUB_OUTPUT
+          echo "BRANCH_REF=git ls-remote --heads origin 'argocd-${{ inputs.GH_BRANCH }}'" >> $GITHUB_OUTPUT
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
-        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == 0 }}
+        if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
         run: |
-          echo ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH }}
           git checkout argocd-${{ inputs.GH_BRANCH }}
           git config pull.rebase false
           git pull origin argocd-${{ inputs.GH_BRANCH }}
           git status
         
       - name: Create argocd-${{ inputs.GH_BRANCH }} branch
-        if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == 2 }}
+        if: ${{ steps.validate-branch.outputs.BRANCH_REF == '' }}
         run: |
-          echo ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH }}
           git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
-          git status
+          git status-
 
       - name: Initialize mandatory git config
         run: |
