@@ -32,7 +32,7 @@ jobs:
       - name: validate argocd-${{ inputs.GH_BRANCH }} branch exists
         id: validate-branch
         run: |
-          git ls-remote --exit-code --heads origin argocd-${{ inputs.GH_BRANCH }} >/dev/null 2>&1
+          git ls-remote --exit-code --heads origin argocd-${{ inputs.GH_BRANCH }}
           echo "EXIT_CODE_BRANCH=$($?)" >> $GITHUB_OUTPUT
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
