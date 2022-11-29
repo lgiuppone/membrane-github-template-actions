@@ -38,7 +38,7 @@ jobs:
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
         run: |
-          git switch origin/argocd-${{ inputs.GH_BRANCH }}
+          git switch origin argocd-${{ inputs.GH_BRANCH }}
           git config pull.rebase false
           git status
         
