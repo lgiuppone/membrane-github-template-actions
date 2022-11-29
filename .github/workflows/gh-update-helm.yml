@@ -33,7 +33,7 @@ jobs:
         id: validate-branch
         run: |
           git ls-remote --exit-code --heads origin argocd-${{ inputs.GH_BRANCH }}
-          echo "EXIT_CODE_BRANCH=$($?)" >> $GITHUB_OUTPUT
+          echo "EXIT_CODE_BRANCH=$?" >> $GITHUB_OUTPUT
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.EXIT_CODE_BRANCH == '0' }}
