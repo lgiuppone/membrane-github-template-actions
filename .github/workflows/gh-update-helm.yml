@@ -33,7 +33,7 @@ jobs:
         run: |
           git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
           git checkout argocd-${{ inputs.GH_BRANCH }}
-          # git pull origin argocd-${{ inputs.GH_BRANCH }}
+          git pull origin argocd-${{ inputs.GH_BRANCH }}
           git status
 
       - name: Initialize mandatory git config
