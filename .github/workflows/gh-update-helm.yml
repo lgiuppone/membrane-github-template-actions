@@ -76,6 +76,7 @@ jobs:
       - name: Commit manifest files
         id: make-commit
         run: |
+          git push
           git add .
           git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
