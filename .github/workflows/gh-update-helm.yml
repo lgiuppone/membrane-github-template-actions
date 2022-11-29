@@ -67,7 +67,7 @@ jobs:
           createPR: false
           commitChange: false
           message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-          branch: argocd-${{ inputs.GH_BRANCH }}
+          # branch: argocd-${{ inputs.GH_BRANCH }}
           # masterBranchName: ${{ inputs.GH_BRANCH }}
           # targetBranch: argocd-${{ inputs.GH_BRANCH }}
           # updateFile: true
