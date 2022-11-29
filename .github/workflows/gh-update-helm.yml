@@ -33,7 +33,7 @@ jobs:
         continue-on-error: true
         id: validate-branch
         run: |
-          echo "BRANCH_REF=git ls-remote --heads origin 'argocd-${{ inputs.GH_BRANCH }}'" >> $GITHUB_OUTPUT
+          echo "BRANCH_REF=$(git ls-remote --heads origin 'argocd-${{ inputs.GH_BRANCH }}')" >> $GITHUB_OUTPUT
 
       - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
