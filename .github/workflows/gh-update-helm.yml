@@ -69,19 +69,19 @@ jobs:
           propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
-          commitChange: true
+          commitChange: false
           message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-          branch: argocd-${{ inputs.GH_BRANCH }}
+          #branch: argocd-${{ inputs.GH_BRANCH }}
           # masterBranchName: ${{ inputs.GH_BRANCH }}
           # targetBranch: argocd-${{ inputs.GH_BRANCH }}
           # updateFile: true
 
 
-      # - name: Commit manifest files
-      #   id: make-commit
-      #   run: |
-      #     git add .
-      #     git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
+      - name: Commit manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Update helm version to ${{ inputs.HELM_VERSION }}"
 
-      # - name: Push new branch release
-      #   run: git push origin argocd-${{ inputs.GH_BRANCH }}
+      - name: Push new branch release
+        run: git push origin argocd-${{ inputs.GH_BRANCH }}
