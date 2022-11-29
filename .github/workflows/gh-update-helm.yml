@@ -55,7 +55,7 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
-          git fetch origin/${{ inputs.GH_BRANCH }}
+          git fetch ${{ inputs.GH_BRANCH }}
           git merge origin/${{ inputs.GH_BRANCH }}
 
       - name: Upgrade Tag ArgoCD
