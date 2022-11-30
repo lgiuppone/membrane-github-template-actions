@@ -127,6 +127,7 @@ jobs:
         if: ${{ inputs.GH_VERSION == '' && inputs.GH_ENV == 'develop' }}
         run: |
           echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          IMAGE_TAG=$(git rev-parse --short HEAD)
           docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
           docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
 
@@ -134,6 +135,7 @@ jobs:
         if: ${{ inputs.GH_VERSION != '' && inputs.GH_ENV == 'staging' }}
         run: |
           echo "IMAGE_TAG=${{ inputs.GH_VERSION }}" >> $GITHUB_OUTPUT
+          IMAGE_TAG=${{ inputs.GH_VERSION }}
           docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
           docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
 
