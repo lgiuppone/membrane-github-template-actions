@@ -60,7 +60,7 @@ jobs:
 
       - name: Merge from ${{ inputs.GH_BRANCH }}
         run: |
-          git merge origin/${{ inputs.GH_BRANCH }}
+          git merge origin/${{ inputs.GH_BRANCH }} --strategy-option theirs
 
       - name: Upgrade Tag ArgoCD
         uses: fjogeleit/yaml-update-action@main
