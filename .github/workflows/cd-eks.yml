@@ -40,9 +40,12 @@ on:
       IMAGE_NAME:
         description: "The image name"
         value: ${{ jobs.cd.outputs.IMAGE_NAME }}
-      IMAGE_TAG:
-        description: "The image tag"
-        value: ${{ jobs.cd.outputs.IMAGE_TAG }}
+      IMAGE_TAG_DEV:
+        description: "The image tag develop"
+        value: ${{ jobs.cd.outputs.IMAGE_TAG_DEV }}
+      IMAGE_TAG_STG:
+        description: "The image tag staging"
+        value: ${{ jobs.cd.outputs.IMAGE_TAG_STG }}
 
 jobs:
   cd:
@@ -55,7 +58,8 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     outputs:
       IMAGE_NAME: ${{ steps.image-name.outputs.IMAGE_NAME }}
-      IMAGE_TAG: ${{ steps.image-name.outputs.IMAGE_TAG }}
+      IMAGE_TAG_DEV: ${{ steps.image-build-tag-develop.outputs.IMAGE_TAG_DEV }}
+      IMAGE_TAG_STG: ${{ steps.image-build-tag-staging.outputs.IMAGE_TAG_STG }}
     steps:
       - uses: Lattice-Trade/github-action-slack-notify-build@main
         with:
@@ -124,20 +128,22 @@ jobs:
           echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPOSITORY" >> $GITHUB_OUTPUT
 
       - name: Generate image tag with github sha commit
+        id: image-build-tag-develop
         if: ${{ inputs.GH_VERSION == '' && inputs.GH_ENV == 'develop' }}
         run: |
-          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           IMAGE_TAG=$(git rev-parse --short HEAD)
           docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
           docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
+          echo "IMAGE_TAG_DEV=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Generate image tag with version pre-release
+        id: image-build-tag-staging
         if: ${{ inputs.GH_VERSION != '' && inputs.GH_ENV == 'staging' }}
         run: |
-          echo "IMAGE_TAG=${{ inputs.GH_VERSION }}" >> $GITHUB_OUTPUT
           IMAGE_TAG=${{ inputs.GH_VERSION }}
           docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
           docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
+          echo "IMAGE_TAG_STG=${{ inputs.GH_VERSION }}" >> $GITHUB_OUTPUT
 
       # - name: Build, tag, and push image to Amazon ECR
       #   id: build-push-image
