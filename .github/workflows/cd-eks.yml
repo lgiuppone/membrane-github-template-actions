@@ -33,6 +33,9 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      GH_VERSION:
+        required: false
+        type: string
     outputs:
       IMAGE_NAME:
         description: "The image name"
@@ -113,19 +116,32 @@ jobs:
       # - name: Code build
       #   run: npm ci --ignore-scripts
 
-      - name: Generate image name and tag
+      - name: Generate image name
         id: image-name
         run: |
           #Set image name and tag as output
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "IMAGE_NAME=$ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$ECR_REPOSITORY" >> $GITHUB_OUTPUT
-          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-push-image
+      - name: Generate image tag with github sha commit
+        if: ${{ inputs.GH_VERSION == '' && inputs.GH_ENV == 'develop' }}
         run: |
-          docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
-          docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
+          echo "IMAGE_TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
+          docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
+
+      - name: Generate image tag with version pre-release
+        if: ${{ inputs.GH_VERSION != '' && inputs.GH_ENV == 'staging' }}
+        run: |
+          echo "IMAGE_TAG=${{ inputs.GH_VERSION }}" >> $GITHUB_OUTPUT
+          docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG .
+          docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:$IMAGE_TAG
+
+      # - name: Build, tag, and push image to Amazon ECR
+      #   id: build-push-image
+      #   run: |
+      #     docker build --build-arg NPM_TOKEN=${{ secrets.NPM_TOKEN }} -t ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }} .
+      #     docker push ${{ steps.image-name.outputs.IMAGE_NAME }}:${{ steps.image-name.outputs.IMAGE_TAG }}
 
       # - name: Sync with ArgoCD
       #   uses: fjogeleit/yaml-update-action@main
