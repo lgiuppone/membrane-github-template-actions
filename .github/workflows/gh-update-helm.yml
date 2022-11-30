@@ -29,28 +29,28 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: validate argocd-${{ inputs.GH_BRANCH }} branch exists
+      - name: validate argocd-${{ inputs.GH_ENV }} branch exists
         continue-on-error: true
         id: validate-branch
         run: |
-          echo "BRANCH_REF=$(git ls-remote --heads origin 'argocd-${{ inputs.GH_BRANCH }}')" >> $GITHUB_OUTPUT
+          echo "BRANCH_REF=$(git ls-remote --heads origin 'argocd-${{ inputs.GH_ENV }}')" >> $GITHUB_OUTPUT
 
-      - name: Checkout argocd-${{ inputs.GH_BRANCH }} branch
+      - name: Checkout argocd-${{ inputs.GH_ENV }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
         uses: actions/checkout@v3
         with:
-          ref: argocd-${{ inputs.GH_BRANCH }}
+          ref: argocd-${{ inputs.GH_ENV }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
         # run: |
-        #   git switch argocd-${{ inputs.GH_BRANCH }}
+        #   git switch argocd-${{ inputs.GH_ENV }}
         #   git config pull.rebase false
         #   git status
         
-      - name: Create argocd-${{ inputs.GH_BRANCH }} branch
+      - name: Create argocd-${{ inputs.GH_ENV }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF == '' }}
         run: |
-          git checkout -b argocd-${{ inputs.GH_BRANCH }} ${{ inputs.GH_BRANCH }}
+          git checkout -b argocd-${{ inputs.GH_ENV }} ${{ inputs.GH_BRANCH }}
           git status
 
       - name: Initialize mandatory git config
@@ -71,9 +71,9 @@ jobs:
           createPR: false
           commitChange: false
           message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-          #branch: argocd-${{ inputs.GH_BRANCH }}
+          #branch: argocd-${{ inputs.GH_ENV }}
           # masterBranchName: ${{ inputs.GH_BRANCH }}
-          # targetBranch: argocd-${{ inputs.GH_BRANCH }}
+          # targetBranch: argocd-${{ inputs.GH_ENV }}
           # updateFile: true
 
 
@@ -82,4 +82,4 @@ jobs:
         run: |
           git add .
           git commit --message "Update helm version to ${{ inputs.IMAGE_VERSION }}"
-          git push
+          git push  --set-upstream origin argocd-${{ inputs.GH_ENV }}
