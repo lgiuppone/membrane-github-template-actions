@@ -121,7 +121,7 @@ jobs:
           echo "Login to argocd"
           argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
           echo "Creating app in argocd"
-          argocd app create ${{ inputs.HELM_NAME }}-${{ GH_ENV }} \
+          argocd app create ${{ inputs.HELM_NAME }}-${{ inputs.GH_ENV }} \
           --repo ${{ inputs.GH_REPO_URL }} \
           --revision argocd-${{ inputs.GH_ENV }} \
           --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
