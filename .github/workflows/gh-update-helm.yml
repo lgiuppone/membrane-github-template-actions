@@ -18,12 +18,6 @@ on:
       ARGOCD_URL:
         required: true
         type: string
-      ARGOCD_USERNAME:
-        required: true
-        type: string
-      ARGOCD_PASSWORD:
-        required: true
-        type: string
       CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL:
         required: true
         type: string
@@ -125,7 +119,7 @@ jobs:
         if: ${{ needs.update-helm.outputs.BRANCH_REF != '' }}
         run: |
           echo "Login to argocd"
-          argocd login --insecure --grpc-web --username ${{ inputs.ARGOCD_USERNAME }} --password ${{ inputs.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
+          argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
           echo "Creating app in argocd"
           argocd app create ${{ inputs.HELM_NAME }}-${{ GH_ENV }} \
           --repo ${{ inputs.GH_REPO_URL }} \
