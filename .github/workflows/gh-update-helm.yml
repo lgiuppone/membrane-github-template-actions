@@ -116,7 +116,7 @@ jobs:
     container: ghcr.io/jodybro/argocd-cli:1.1.0
     steps:
       - name: Create app in argo
-        if: ${{ needs.update-helm.outputs.BRANCH_REF != '' }}
+        if: ${{ needs.update-helm.outputs.BRANCH_REF == '' }}
         run: |
           echo "Login to argocd"
           argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
