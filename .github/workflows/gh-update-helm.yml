@@ -15,11 +15,42 @@ on:
       IMAGE_VERSION:
         required: true
         type: string
+      ARGOCD_URL:
+        required: true
+        type: string
+      ARGOCD_USERNAME:
+        required: true
+        type: string
+      ARGOCD_PASSWORD:
+        required: true
+        type: string
+      CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL:
+        required: true
+        type: string
+      ARGOCD_DESTINATION_SERVER:
+        required: true
+        type: string
+      GH_REPO_URL:
+        required: true
+        type: string
+      ARGOCD_VAULT_PLUGIN_ENV:
+        required: true
+        type: string
+      ARGOCD_APP_PROJECT:
+        required: true
+        type: string
+      ARGOCD_DEST_NAMESPACE:
+        required: true
+        type: string
+      
+      
 
 jobs:
   update-helm:
     name: "Update helm & push"
     runs-on: ubuntu-latest
+    outputs:
+      BRANCH_REF: ${{ steps.validate-branch.outputs.BRANCH_REF }}
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
@@ -83,3 +114,31 @@ jobs:
           git add .
           git commit --message "Update helm version to ${{ inputs.IMAGE_VERSION }}"
           git push  --set-upstream origin argocd-${{ inputs.GH_ENV }}
+
+  createAppInArgoCD:
+    name: "Create App in ArgoCD"
+    runs-on: [self-hosted, eks]
+    needs: update-helm
+    steps:
+      - name: Create app in argo
+        if: ${{ needs.update-helm.outputs.BRANCH_REF != '' }}
+        run: |
+          echo "Login to argocd"
+          argocd login --insecure --grpc-web --username ${{ inputs.ARGOCD_USERNAME }} --password ${{ inputs.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
+          echo "Creating app in argocd"
+          argocd app create ${{ inputs.HELM_NAME }}-${{ GH_ENV }} \
+          --repo ${{ inputs.GH_REPO_URL }} \
+          --revision argocd-${{ inputs.GH_ENV }} \
+          --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
+          --path .infra/${{ inputs.GH_ENV }}/ \
+          --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
+          --sync-policy automated \
+          --self-heal \
+          --grpc-web \
+          --project ${{ inputs.ARGOCD_APP_PROJECT }} \
+          --dest-namespace ${{ inputs.ARGOCD_DEST_NAMESPACE }} \
+          --annotations notifications.argoproj.io/subscribe.on-deployed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-health-degraded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-failed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-running.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-succeeded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }}
