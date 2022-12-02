@@ -111,7 +111,7 @@ jobs:
 
   createAppInArgoCD:
     name: "Create App in ArgoCD"
-    runs-on: [self-hosted, eks]
+    runs-on: [self-hosted, k8s]
     needs: update-helm
     container: ghcr.io/jodybro/argocd-cli:1.1.0
     steps:
