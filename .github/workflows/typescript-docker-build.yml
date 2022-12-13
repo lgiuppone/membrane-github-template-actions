@@ -35,10 +35,10 @@ on:
     outputs:
       IMAGE_NAME:
         description: "A FQDN of the image to be built and pushed"
-        value: ${{ job.docker-build.outputs.IMAGE_NAME }}
+        value: ${{ jobs.docker-build.outputs.IMAGE_NAME }}
       IMAGE_TAG:
         description: "Only the tag of the image"
-        value: ${{ steps.docker-build.outputs.IMAGE_TAG }}
+        value: ${{ jobs.docker-build.outputs.IMAGE_TAG }}
 jobs:
   docker-build:
     if: ${{ inputs.GH_PR_MERGED }}
