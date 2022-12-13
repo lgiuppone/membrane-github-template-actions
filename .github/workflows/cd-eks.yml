@@ -40,16 +40,16 @@ on:
         required: false
         type: string
         default: package.json
-    outputs:
-      IMAGE_NAME:
-        description: "The image name"
-        value: ${{ jobs.cd.outputs.IMAGE_NAME }}
-      IMAGE_TAG_DEV:
-        description: "The image tag develop"
-        value: ${{ jobs.cd.outputs.IMAGE_TAG_DEV }}
-      IMAGE_TAG_STG:
-        description: "The image tag staging"
-        value: ${{ jobs.cd.outputs.IMAGE_TAG_STG }}
+    # outputs:
+    #   IMAGE_NAME:
+    #     description: "The image name"
+    #     value: ${{ jobs.cd.outputs.IMAGE_NAME }}
+    #   IMAGE_TAG_DEV:
+    #     description: "The image tag develop"
+    #     value: ${{ jobs.cd.outputs.IMAGE_TAG_DEV }}
+    #   IMAGE_TAG_STG:
+    #     description: "The image tag staging"
+    #     value: ${{ jobs.cd.outputs.IMAGE_TAG_STG }}
     secrets:
       NPM_TOKEN:
         required: true
