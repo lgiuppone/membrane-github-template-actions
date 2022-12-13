@@ -114,9 +114,8 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
-    - name: Define image name if input is empty
+    - name: Define image name
       # If deploying to prod, the image is not built, but taken from staging ECR, so I need that job to output the image name.
-      if: inputs.IMAGE_NAME == ''
       run: echo IMAGE_NAME=$NAME >> $GITHUB_ENV
       shell: bash
       env:
@@ -150,7 +149,7 @@ jobs:
       with:
         task-definition: task-definition.json
         container-name: ${{ inputs.CONTAINER_NAME }}
-        image: ${{ env.IMAGE_NAME }}
+        image: ${{ env.IMAGE_NAME }} #${{ needs.promote-staging-to-prod.outputs.IMAGE_NAME }}${{ inputs.IMAGE_NAME }}
 
     # - name: Deploy Amazon ECS task definition
     #   uses: aws-actions/amazon-ecs-deploy-task-definition@master
