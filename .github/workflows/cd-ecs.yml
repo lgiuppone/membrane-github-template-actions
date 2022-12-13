@@ -46,6 +46,10 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      METADATA_PACKAGE:
+        required: false
+        type: string
+        default: package.json
     secrets:
       NPM_TOKEN:
         required: true
@@ -75,8 +79,7 @@ jobs:
       with:
         ref: main
     - name: Fetch current app version
-      id: version
-      run: echo "OUTPUT=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_OUTPUT
+      run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
     - name: Promote image from staging to production
       uses: Lattice-Trade/membrane-github-composite-actions/docker/promote-image@feature/LM-9164-step-deduplication
       with:
@@ -85,7 +88,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
         AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
-        GH_VERSION: ${{ steps.version.OUTPUT }}
+        GH_VERSION: ${{ env.VERSION }}
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
 
   deploy_ecs_task:
