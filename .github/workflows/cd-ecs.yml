@@ -60,90 +60,52 @@ on:
         required: true
 
 jobs:
-  cd:
+  promote-staging-to-prod:
+    if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: main
+    - name: Fetch current app version
+      id: version
+      run: echo "OUTPUT=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
+    - name: Promote image from staging to production
+      uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/docker-promote-image.yml@feature/LM-9164
+      with:
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        GH_VERSION: ${{ steps.version.OUTPUT }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+
+  deploy_ecs_task:
     if: ${{ inputs.GH_PR_MERGED }} 
-    name: deploy to ${{ inputs.GH_ENV }} 
+    needs: promote-staging-to-prod
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.GH_ENV }} 
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
-    
-    - uses: Lattice-Trade/github-action-slack-notify-build@main
+    - name: Login to ECR
+      id: ecr-login
+      uses: Lattice-Trade/membrane-github-composite-actions/aws/ecr-login@feature/LM-9164-step-deduplication
       with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: STARTED
-        color: good
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-          ref: ${{ inputs.GH_BRANCH_NAME }} 
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@master
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@main
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   
-    - name: Use cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'
-      uses: actions/setup-node@v3
-      with:
-          node-version: ${{ inputs.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org/
-  
-    - name: Code build
-      run: npm ci --ignore-scripts
-
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-push-image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ inputs.GH_SHA }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest . --build-arg NPM_TOKEN=${NPM_TOKEN}
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-    # - name: Run Trivy vulnerability scanner
-    #   uses: aquasecurity/trivy-action@master
-    #   with:
-    #       image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}'
-    #       format: 'table'
-    #       exit-code: '0'
-    #       ignore-unfixed: true
-    #       vuln-type: 'os,library'
-    #       severity: 'CRITICAL,HIGH'
-    #   env:
-    #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #       ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}          
-    #       AWS_DEFAULT_REGION: ${{ inputs.AWS_REGION }}
-   
     - name: Download task definition
       env:
           TASK_DEFINITION: ${{ inputs.TASK_DEFINITION }}
       run: |
         aws ecs describe-task-definition --task-definition ${TASK_DEFINITION} --query taskDefinition > task-definition.json
-        
+
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@master
@@ -152,39 +114,39 @@ jobs:
         container-name: ${{ inputs.CONTAINER_NAME }}
         image: ${{ steps.build-push-image.outputs.image }}
 
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@master
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ inputs.ECS_SERVICE }}
-        cluster: ${{ inputs.ECS_CLUSTER }}
-        wait-for-service-stability: true
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@master
+    #   with:
+    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+    #     service: ${{ inputs.ECS_SERVICE }}
+    #     cluster: ${{ inputs.ECS_CLUSTER }}
+    #     wait-for-service-stability: true
 
-    - name: Create New Relic deployment marker
-      uses: newrelic/deployment-marker-action@v1
-      continue-on-error: true
-      with:
-        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-        applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
-        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+    # - name: Create New Relic deployment marker
+    #   uses: newrelic/deployment-marker-action@v1
+    #   continue-on-error: true
+    #   with:
+    #     accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+    #     apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+    #     applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
+    #     revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
-    - name: Notify slack success
-      if: success()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: SUCCESS
-        color: good
+    # - name: Notify slack success
+    #   if: success()
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+    #   uses: Lattice-Trade/github-action-slack-notify-build@main
+    #   with:
+    #     channel: ${{ inputs.SLACK_CHANNEL }}
+    #     status: SUCCESS
+    #     color: good
 
-    - name: Notify slack fail
-      if: failure()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: FAILED
-        color: danger
+    # - name: Notify slack fail
+    #   if: failure()
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+    #   uses: Lattice-Trade/github-action-slack-notify-build@main
+    #   with:
+    #     channel: ${{ inputs.SLACK_CHANNEL }}
+    #     status: FAILED
+    #     color: danger
