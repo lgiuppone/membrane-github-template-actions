@@ -4,8 +4,9 @@ on:
   workflow_call:
     inputs:
       AWS_REGION:
-        required: true
+        required: false
         type: string
+        default: us-east-2
       ECR_REPOSITORY:
         required: true
         type: string
