@@ -76,7 +76,7 @@ jobs:
         ref: main
     - name: Fetch current app version
       id: version
-      run: echo "OUTPUT=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
+      run: echo "OUTPUT=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_OUTPUT
     - name: Promote image from staging to production
       uses: Lattice-Trade/membrane-github-composite-actions/docker/promote-image@feature/LM-9164-step-deduplication
       with:
