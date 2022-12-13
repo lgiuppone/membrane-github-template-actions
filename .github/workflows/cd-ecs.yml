@@ -114,14 +114,17 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
-    - name: Define image name
+    - name: Define image name if input is empty
       # If deploying to prod, the image is not built, but taken from staging ECR, so I need that job to output the image name.
       if: inputs.IMAGE_NAME == ''
-      run: echo IMAGE_NAME=${{ needs.promote-staging-to-prod.outputs.IMAGE_NAME }} >> $GITHUB_ENV
+      run: echo IMAGE_NAME=$NAME >> $GITHUB_ENV
       shell: bash
-    - if: inputs.IMAGE_NAME != ''
-      run: echo IMAGE_NAME=${{ inputs.IMAGE_NAME }} >> $GITHUB_ENV
-      shell: bash
+      env:
+        NAME: ${{ needs.promote-staging-to-prod.outputs.IMAGE_NAME }}${{ inputs.IMAGE_NAME }}
+    # - name: Define image name if provided
+    #   if: inputs.IMAGE_NAME != ''
+    #   run: echo IMAGE_NAME=${{ inputs.IMAGE_NAME }} >> $GITHUB_ENV
+    #   shell: bash
 
     - name: Checkout
       uses: actions/checkout@v3
