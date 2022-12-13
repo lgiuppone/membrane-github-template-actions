@@ -32,7 +32,13 @@ on:
         required: true
       NPM_TOKEN:
         required: true
-
+    outputs:
+      IMAGE_NAME:
+        description: "A FQDN of the image to be built and pushed"
+        value: ${{ steps.docker-build.outputs.IMAGE_NAME }}
+      IMAGE_TAG:
+        description: "Only the tag of the image"
+        value: ${{ steps.docker-build.outputs.IMAGE_TAG }}
 jobs:
   docker_build:
     if: ${{ inputs.GH_PR_MERGED }}
@@ -62,6 +68,7 @@ jobs:
     #   env:
     #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
     - name: Build and push to ECR
+      id: docker-build
       uses: Lattice-Trade/membrane-github-composite-actions/docker/build-push@feature/LM-9164
       with:
         ECR_REGISTRY: ${{ steps.ecr-login.outputs.ECR_REGISTRY }}

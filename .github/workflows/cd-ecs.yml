@@ -80,7 +80,11 @@ jobs:
         ref: main
     - name: Fetch current app version
       run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
+    - name: Set repositories names
+      run: echo STG_ECR_REPOSITORY=`echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f2- | rev`-stg >> $GITHUB_ENV
+      shell: bash
     - name: Promote image from staging to production
+      id: promote-image
       uses: Lattice-Trade/membrane-github-composite-actions/docker/promote-image@feature/LM-9164-step-deduplication
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
@@ -90,13 +94,14 @@ jobs:
         AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
         GH_VERSION: ${{ env.VERSION }}
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+        STG_ECR_REPOSITORY: ${{ env.STG_ECR_REPOSITORY }}
 
   deploy_ecs_task:
-    if: ${{ inputs.GH_PR_MERGED }} 
+    if: ${{ inputs.GH_PR_MERGED }} # Add conditionals in case image promotion is skipped
     needs: promote-staging-to-prod
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: ${{ inputs.GH_ENV }} 
+    environment: ${{ inputs.GH_ENV }}
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
@@ -120,7 +125,7 @@ jobs:
       with:
         task-definition: task-definition.json
         container-name: ${{ inputs.CONTAINER_NAME }}
-        image: ${{ steps.build-push-image.outputs.image }}
+        image: ${{ steps.promote-image.outputs.IMAGE_NAME }}
 
     # - name: Deploy Amazon ECS task definition
     #   uses: aws-actions/amazon-ecs-deploy-task-definition@master

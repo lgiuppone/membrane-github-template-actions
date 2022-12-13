@@ -36,6 +36,10 @@ on:
       GH_VERSION:
         required: false
         type: string
+      METADATA_PACKAGE:
+        required: false
+        type: string
+        default: package.json
     outputs:
       IMAGE_NAME:
         description: "The image name"
@@ -87,3 +91,23 @@ jobs:
         AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
         GH_VERSION: ${{ steps.version.OUTPUT }}
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: SUCCESS
+        color: good
+  
+    - name: Notify slack fail
+      if: failure()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: FAILED
+        color: danger
