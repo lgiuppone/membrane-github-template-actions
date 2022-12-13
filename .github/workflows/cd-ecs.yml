@@ -50,6 +50,10 @@ on:
         required: false
         type: string
         default: package.json
+      IMAGE_NAME:
+        # Output from build job (see typescript-docker-build.yml)
+        required: false
+        type: string
     secrets:
       NPM_TOKEN:
         required: true
@@ -73,6 +77,8 @@ jobs:
     if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      IMAGE_NAME: ${{ steps.promote-image.outputs.IMAGE_NAME }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -108,6 +114,20 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
     steps:
+    - name: Define image name
+      # If deploying to prod, the image is not built, but taken from staging ECR, so I need that job to output the image name.
+      run: |
+        if [[ -z ${{ inputs.IMAGE_NAME }} ]]; then 
+          echo IMAGE_NAME=${{ jobs.promote-staging-to-prod.outputs.IMAGE_NAME }} >> $GITHUB_ENV
+        else
+          echo IMAGE_NAME=${{ inputs.IMAGE_NAME }} >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.GH_BRANCH_NAME }}
     - name: Login to ECR
       id: ecr-login
       uses: Lattice-Trade/membrane-github-composite-actions/aws/ecr-login@feature/LM-9164-step-deduplication
@@ -128,7 +148,7 @@ jobs:
       with:
         task-definition: task-definition.json
         container-name: ${{ inputs.CONTAINER_NAME }}
-        image: ${{ steps.promote-image.outputs.IMAGE_NAME }}
+        image: ${{ env.IMAGE_NAME }}
 
     # - name: Deploy Amazon ECS task definition
     #   uses: aws-actions/amazon-ecs-deploy-task-definition@master
