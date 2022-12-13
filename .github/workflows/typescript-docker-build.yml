@@ -65,7 +65,7 @@ jobs:
       id: image
       run: |
         echo "TAG=${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
-        echo "NAME=${{ steps.ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+        echo "NAME=${{ steps.ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
       shell: bash
     # - name: Notify build start on slack
     #   uses: Lattice-Trade/github-action-slack-notify-build@main
