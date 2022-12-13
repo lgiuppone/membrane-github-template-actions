@@ -53,6 +53,10 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      AWS_ACCESS_KEY_ID_PROD:
+        required: true
+      AWS_SECRET_ACCESS_KEY_PROD:
+        required: true
       NEW_RELIC_ACCOUNT_ID:
         required: false
       NEW_RELIC_API_KEY:

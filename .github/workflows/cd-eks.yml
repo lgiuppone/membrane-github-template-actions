@@ -46,6 +46,23 @@ on:
       IMAGE_TAG_STG:
         description: "The image tag staging"
         value: ${{ jobs.cd.outputs.IMAGE_TAG_STG }}
+    secrets:
+      NPM_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_ACCESS_KEY_ID_PROD:
+        required: true
+      AWS_SECRET_ACCESS_KEY_PROD:
+        required: true
+      NEW_RELIC_ACCOUNT_ID:
+        required: false
+      NEW_RELIC_API_KEY:
+        required: false
+      SLACK_ALARMS_TOKEN:
+        required: true
 
 jobs:
   promote-staging-to-prod:
