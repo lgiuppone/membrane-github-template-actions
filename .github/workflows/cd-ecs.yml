@@ -98,6 +98,7 @@ jobs:
 
   deploy_ecs_task:
     if: |
+      always() &&
       inputs.GH_PR_MERGED &&
       (needs.promote-staging-to-prod.result == 'success' || needs.promote-staging-to-prod.result == 'skipped')
     needs: promote-staging-to-prod
