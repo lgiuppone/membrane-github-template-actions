@@ -65,7 +65,7 @@ jobs:
       id: image
       run: |
         echo "NAME=${{ steps.ecr-login.outputs.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.AWS_REGION }}.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
-        echo "NAME64=${{ steps.ecr-login.outputs.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.AWS_REGION }}.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" | base64 >> $GITHUB_OUTPUT
+        echo "NAME64=$(echo ${{ steps.ecr-login.outputs.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.AWS_REGION }}.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }} |base64)" >> $GITHUB_OUTPUT
         echo "TAG=${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
     # - name: Notify build start on slack
     #   uses: Lattice-Trade/github-action-slack-notify-build@main
