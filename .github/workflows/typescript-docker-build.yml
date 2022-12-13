@@ -45,8 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
-      IMAGE_NAME: ${{ steps.docker-build.outputs.IMAGE_NAME }}
-      IMAGE_TAG: ${{ steps.docker-build.outputs.IMAGE_TAG }}
+      IMAGE_NAME: ${{ steps.image.outputs.NAME }}
+      IMAGE_TAG: ${{ steps.image.outputs.TAG }}
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
     steps:
@@ -61,6 +61,12 @@ jobs:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Export image variables
+      id: image
+      run: |
+        echo "TAG=${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+        echo "NAME=${{ steps.ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+      shell: bash
     # - name: Notify build start on slack
     #   uses: Lattice-Trade/github-action-slack-notify-build@main
     #   continue-on-error: true
@@ -74,9 +80,7 @@ jobs:
       id: docker-build
       uses: Lattice-Trade/membrane-github-composite-actions/docker/build-push@feature/LM-9164-step-deduplication
       with:
-        ECR_REGISTRY: ${{ steps.ecr-login.outputs.ECR_REGISTRY }}
-        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-        IMAGE_TAG: ${{ inputs.GH_SHA }}
+        IMAGE_NAME: ${{ steps.image.outputs.NAME }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     # - name: Run Trivy vulnerability scanner
     #   uses: aquasecurity/trivy-action@master
