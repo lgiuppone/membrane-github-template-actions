@@ -61,7 +61,7 @@ jobs:
       id: version
       run: echo "OUTPUT=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
     - name: Promote image from staging to production
-      uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/docker-promote-image.yml@feature/LM-9164
+      uses: Lattice-Trade/membrane-github-composite-actions/docker/promote-image@feature/LM-9164-step-deduplication
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
