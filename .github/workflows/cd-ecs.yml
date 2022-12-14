@@ -141,39 +141,39 @@ jobs:
         # One of the two will be an empty string by design
         image: ${{ needs.promote-staging-to-prod.outputs.IMAGE_NAME }}${{ inputs.IMAGE_NAME }}
 
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@master
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: ${{ inputs.ECS_SERVICE }}
-        cluster: ${{ inputs.ECS_CLUSTER }}
-        wait-for-service-stability: true
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@master
+    #   with:
+    #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+    #     service: ${{ inputs.ECS_SERVICE }}
+    #     cluster: ${{ inputs.ECS_CLUSTER }}
+    #     wait-for-service-stability: true
 
-    - name: Create New Relic deployment marker
-      uses: newrelic/deployment-marker-action@v1
-      continue-on-error: true
-      with:
-        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
-        applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
-        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+    # - name: Create New Relic deployment marker
+    #   uses: newrelic/deployment-marker-action@v1
+    #   continue-on-error: true
+    #   with:
+    #     accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+    #     apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+    #     applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
+    #     revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
 
-    - name: Notify slack success
-      if: success()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: SUCCESS
-        color: good
+    # - name: Notify slack success
+    #   if: success()
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+    #   uses: Lattice-Trade/github-action-slack-notify-build@main
+    #   with:
+    #     channel: ${{ inputs.SLACK_CHANNEL }}
+    #     status: SUCCESS
+    #     color: good
 
-    - name: Notify slack fail
-      if: failure()
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
-      uses: Lattice-Trade/github-action-slack-notify-build@main
-      with:
-        channel: ${{ inputs.SLACK_CHANNEL }}
-        status: FAILED
-        color: danger
+    # - name: Notify slack fail
+    #   if: failure()
+    #   env:
+    #     SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+    #   uses: Lattice-Trade/github-action-slack-notify-build@main
+    #   with:
+    #     channel: ${{ inputs.SLACK_CHANNEL }}
+    #     status: FAILED
+    #     color: danger
