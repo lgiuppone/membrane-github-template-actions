@@ -32,14 +32,21 @@ on:
     #     required: true
     #   NPM_TOKEN:
     #     required: true
+    outputs:
+      IMAGE_NAME:
+        description: "A FQDN of the image to be built and pushed"
+        value: ${{ jobs.docker-build.outputs.IMAGE_NAME }}
+      IMAGE_TAG:
+        description: "Only the tag of the image"
+        value: ${{ jobs.docker-build.outputs.IMAGE_TAG }}
 jobs:
   docker-build:
     if: ${{ inputs.GH_PR_MERGED }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
-      IMAGE_NAME: ${{ steps.image.outputs.NAME }}
-      IMAGE_TAG: ${{ steps.image.outputs.TAG }}
+      IMAGE_NAME: ${{ steps.docker-build.outputs.IMAGE_NAME }}
+      IMAGE_TAG: ${{ steps.docker-build.outputs.IMAGE_TAG }}
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
     steps:
