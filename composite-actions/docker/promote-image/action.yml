@@ -38,7 +38,7 @@ runs:
 
     - name: Log into staging ECR
       id: staging-ecr-login
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@feature/LM-9164
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@staging
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ inputs.AWS_ACCESS_KEY_ID }}
@@ -59,7 +59,7 @@ runs:
 
     - name: Log into production ECR
       id: production-ecr-login
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@feature/LM-9164
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@staging
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ inputs.AWS_ACCESS_KEY_ID_PROD }}

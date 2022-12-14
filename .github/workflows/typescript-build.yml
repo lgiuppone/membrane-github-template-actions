@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/install@feature/LM-9164
+      - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/install@staging
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Build code
