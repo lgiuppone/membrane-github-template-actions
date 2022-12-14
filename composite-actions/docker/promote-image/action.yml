@@ -1,0 +1,81 @@
+name: '📦 Promote image to prod'
+description: 'Promote an image from one account ECR to another account ECR (ie: staging to prod)'
+inputs:
+  AWS_REGION:
+    required: true
+    description: 'AWS Region to deploy to'
+  GH_VERSION:
+    required: true
+    description: 'App Release version'
+  ECR_REPOSITORY:
+    required: true
+    description: 'ECR Repository name'
+  STG_ECR_REPOSITORY:
+    required: false
+    description: 'ECR Repository for staging images'
+  AWS_ACCESS_KEY_ID:
+    required: true
+    description: 'Access key for non prod / staging account'
+  AWS_SECRET_ACCESS_KEY:
+    required: true
+    description: 'Secret key for non prod / staging account'
+  AWS_ACCESS_KEY_ID_PROD:
+    required: false
+    description: 'Access key for prod account'
+  AWS_SECRET_ACCESS_KEY_PROD:
+    required: false
+    description: 'Secret key for prod account'
+outputs:
+  IMAGE_NAME:
+    description: "A FQDN of the image to be built and pushed"
+    value: ${{ steps.prod-image-name.outputs.IMAGE_NAME }}
+  IMAGE_TAG:
+    description: "Only the tag of the image"
+    value: ${{ steps.image-name.outputs.IMAGE_TAG }}
+runs:
+  using: "composite"
+  steps:
+
+    - name: Log into staging ECR
+      id: staging-ecr-login
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@feature/LM-9164
+      with:
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Export staging image name
+      # In case a staging repository is provided (It has a custom name, or it is different than prod repository)
+      if: inputs.STG_ECR_REPOSITORY != ''
+      run: echo STG_IMAGE_NAME=${{ steps.staging-ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.STG_ECR_REPOSITORY }}:${{ inputs.GH_VERSION }} >> $GITHUB_ENV
+      shell: bash
+    - if: inputs.STG_ECR_REPOSITORY == ''
+      run: echo STG_IMAGE_NAME=${{ steps.staging-ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_VERSION }} >> $GITHUB_ENV
+      shell: bash
+
+    - name: Pull image from staging repository
+      run: docker pull ${{ env.STG_IMAGE_NAME }}
+      shell: bash
+
+    - name: Log into production ECR
+      id: production-ecr-login
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@feature/LM-9164
+      with:
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ inputs.AWS_ACCESS_KEY_ID_PROD }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.AWS_SECRET_ACCESS_KEY_PROD }}
+
+    - name: Export production image name and tag
+      id: prod-image-name
+      run: |
+        echo IMAGE_NAME=${{ steps.production-ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_VERSION }} >> $GITHUB_OUTPUT
+        echo IMAGE_TAG=${{ inputs.GH_VERSION }} >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Re-tag image before pushing to production repository
+      run: docker tag ${{ env.STG_IMAGE_NAME }} ${{ steps.prod-image-name.outputs.IMAGE_NAME }}
+      shell: bash
+    
+    - name: Push image
+      run: docker push ${{ steps.prod-image-name.outputs.IMAGE_NAME }}
+      shell: bash

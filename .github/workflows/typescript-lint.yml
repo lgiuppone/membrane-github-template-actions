@@ -1,0 +1,19 @@
+name: '📦 Lint codebase'
+
+on: 
+  workflow_call:
+    inputs:
+      NODE_VERSION:
+        required: true
+        type: string
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/install@feature/LM-9164
+        with:
+          NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      - name: Run lint
+        continue-on-error: true
+        run: npm run lint
