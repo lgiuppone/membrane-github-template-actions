@@ -58,17 +58,19 @@ jobs:
       with:
           ref: ${{ inputs.GH_BRANCH_NAME }}
     - name: Set AWS credentials
-      id: aws-creds
+      id: env-vars
       # If repository ends with dev, stg, or prod, it is an ECS deployment, and we need legacy credentials.
       # If it doesn't, it is an EKS deployment, and we need NONPROD credentials.
       run: |
         ENVIRONMENT=$(echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f1 | rev)
         if [ $ENVIRONMENT = prod -o $ENVIRONMENT = stg -o $ENVIRONMENT = dev ];then 
-          echo AWS_ACCESS_KEY_ID=${{ AWS_ACCESS_KEY_ID }} >> $GITHUB_OUTPUT;
-          echo AWS_SECRET_ACCESS_KEY=${{ AWS_SECRET_ACCESS_KEY }} >> $GITHUB_OUTPUT;
+          echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} >> $GITHUB_OUTPUT;
+          echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> $GITHUB_OUTPUT;
+          echo IMAGE_TAG=${{ inputs.GH_SHA }} >> $GITHUB_OUTPUT;
         else
-          echo AWS_ACCESS_KEY_ID=${{ AWS_ACCESS_KEY_ID_NONPROD }} >> $GITHUB_OUTPUT;
-          echo AWS_SECRET_ACCESS_KEY=${{ AWS_SECRET_ACCESS_KEY_NONPROD }} >> $GITHUB_OUTPUT;
+          echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }} >> $GITHUB_OUTPUT;
+          echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }} >> $GITHUB_OUTPUT;
+          echo IMAGE_TAG=$(echo ${{ inputs.GH_SHA }} | cut -c1-8) >> $GITHUB_OUTPUT;
         fi
       shell: bash
     - name: Login to ECR
@@ -76,8 +78,8 @@ jobs:
       uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@staging
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ steps.aws-creds.outputs.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ steps.aws-creds.outputs.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ steps.env-vars.outputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.env-vars.outputs.AWS_SECRET_ACCESS_KEY }}
     - name: Notify build start on slack
       uses: Lattice-Trade/github-action-slack-notify-build@main
       continue-on-error: true
@@ -93,7 +95,7 @@ jobs:
       with:
         ECR_REGISTRY: ${{ steps.ecr-login.outputs.ECR_REGISTRY }}
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-        GH_SHA: ${{ inputs.GH_SHA }}
+        GH_SHA: ${{ steps.env-vars.outputs.IMAGE_TAG }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     # - name: Run Trivy vulnerability scanner
     #   uses: aquasecurity/trivy-action@master
