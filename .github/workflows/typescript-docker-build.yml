@@ -25,6 +25,9 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      SLACK_CHANNEL:
+        required: true
+        type: string
     # secrets:
     #   AWS_ACCESS_KEY_ID:
     #     required: true
