@@ -14,16 +14,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: Lattice-Trade/membrane-github-composite-actions/npm/check-tests@feature/LM-9164
+      - uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/npm/check-tests@feature/LM-9164
         id: check-tests
-      - uses: Lattice-Trade/membrane-github-composite-actions/npm/install@feature/LM-9164
+      - uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/npm/install@feature/LM-9164
         if: inputs.HAS_UNIT_TEST
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST
         run: npm test
-      # - uses: Lattice-Trade/membrane-github-composite-actions/npm/install@feature/LM-9164
+      # - uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/npm/install@feature/LM-9164
       #   if: ${{ steps.check-tests.outputs.HAS_UNIT_TEST == 'true' }}
       #   with:
       #     NODE_VERSION: ${{ inputs.NODE_VERSION }}
