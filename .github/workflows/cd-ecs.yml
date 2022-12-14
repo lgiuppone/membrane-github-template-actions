@@ -91,7 +91,7 @@ jobs:
       shell: bash
     - name: Promote image from staging to production
       id: promote-image
-      uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/docker/promote-image@feature/LM-9164
+      uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/docker/promote-image@staging
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -120,7 +120,7 @@ jobs:
         ref: ${{ inputs.GH_BRANCH_NAME }}
     - name: Login to ECR
       id: ecr-login
-      uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/aws/ecr-login@feature/LM-9164
+      uses: Lattice-Trade/membrane-github-templates-actions/composite-actions/aws/ecr-login@staging
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
