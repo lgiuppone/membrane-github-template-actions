@@ -32,13 +32,6 @@ on:
     #     required: true
     #   NPM_TOKEN:
     #     required: true
-    outputs:
-      IMAGE_NAME:
-        description: "A FQDN of the image to be built and pushed"
-        value: ${{ jobs.docker-build.outputs.IMAGE_NAME }}
-      IMAGE_TAG:
-        description: "Only the tag of the image"
-        value: ${{ jobs.docker-build.outputs.IMAGE_TAG }}
 jobs:
   docker-build:
     if: ${{ inputs.GH_PR_MERGED }}
@@ -61,11 +54,6 @@ jobs:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    - name: Export image variables
-      id: image
-      run: |
-        echo "NAME=${{ steps.ecr-login.outputs.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.AWS_REGION }}.amazonaws.com/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
-        echo "TAG=${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
     # - name: Notify build start on slack
     #   uses: Lattice-Trade/github-action-slack-notify-build@main
     #   continue-on-error: true
@@ -79,7 +67,9 @@ jobs:
       id: docker-build
       uses: Lattice-Trade/membrane-github-composite-actions/docker/build-push@feature/LM-9164-step-deduplication
       with:
-        IMAGE_NAME: ${{ steps.image.outputs.NAME }}
+        ECR_REGISTRY: ${{ steps.ecr-login.outputs.ECR_REGISTRY }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+        GH_SHA: ${{ inputs.GH_SHA }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     # - name: Run Trivy vulnerability scanner
     #   uses: aquasecurity/trivy-action@master
