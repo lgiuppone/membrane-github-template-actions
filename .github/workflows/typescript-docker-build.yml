@@ -57,7 +57,7 @@ jobs:
       uses: actions/checkout@v3
       with:
           ref: ${{ inputs.GH_BRANCH_NAME }}
-    - name: Set AWS credentials
+    - name: Set credentials and tag for ECS or EKS build
       id: env-vars
       # If repository ends with dev, stg, or prod, it is an ECS deployment, and we need legacy credentials.
       # If it doesn't, it is an EKS deployment, and we need NONPROD credentials.
@@ -70,7 +70,7 @@ jobs:
         else
           echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }} >> $GITHUB_OUTPUT;
           echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }} >> $GITHUB_OUTPUT;
-          echo IMAGE_TAG=$(echo ${{ inputs.GH_SHA }} | cut -c1-8) >> $GITHUB_OUTPUT;
+          echo IMAGE_TAG=$(echo ${{ inputs.GH_SHA }} | cut -c1-7) >> $GITHUB_OUTPUT;
         fi
       shell: bash
     - name: Login to ECR
