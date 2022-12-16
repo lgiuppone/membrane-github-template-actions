@@ -105,7 +105,7 @@ jobs:
         id: make-commit
         run: |
           git add .
-          git commit --message "${{ github.actor }} updated version to $(echo ${{ github.GH_SHA }} | cut -c1-7)"
+          git commit --message "${{ github.actor }} updated version to $(echo ${{ github.sha }} | cut -c1-7)"
           git push  --set-upstream origin argocd-${{ inputs.GH_ENV }}
 
   createAppInArgoCD:
