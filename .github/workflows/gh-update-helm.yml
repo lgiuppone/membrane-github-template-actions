@@ -101,12 +101,11 @@ jobs:
           # targetBranch: argocd-${{ inputs.GH_ENV }}
           # updateFile: true
 
-
       - name: Commit & Push changes
         id: make-commit
         run: |
           git add .
-          git commit --message "Update helm version to ${{ inputs.IMAGE_VERSION }}"
+          git commit --message "${{ github.actor }} updated version to $(echo ${{ github.GH_SHA }} | cut -c1-7)"
           git push  --set-upstream origin argocd-${{ inputs.GH_ENV }}
 
   createAppInArgoCD:
