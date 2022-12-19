@@ -19,10 +19,10 @@ jobs:
         run: npm ci --ignore-scripts
         shell: bash
       - name: Zip artifact of dependencies
-        run: zip -qr node_modules.zip node_modules
+        run: tar -czf node_modules.tgz node_modules
         shell: bash
       - name: Upload artifact of dependencies
         uses: actions/upload-artifact@v2
         with:
-          name: node_modules.zip
-          path: node_modules.zip
+          name: node_modules.tgz
+          path: node_modules.tgz

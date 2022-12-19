@@ -18,10 +18,10 @@ jobs:
       - name: Download artifact of dependencies
         uses: actions/download-artifact@v3
         with:
-          name: node_modules.zip
+          name: node_modules.tgz
           path: .
       - name: Unzip artifact of dependencies
-        run: unzip -q node_modules.zip
+        run: tar -xzf node_modules.tgz
         shell: bash
       - name: Run lint
         continue-on-error: true
