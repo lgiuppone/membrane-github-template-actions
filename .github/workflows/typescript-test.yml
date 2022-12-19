@@ -21,6 +21,8 @@ jobs:
         id: check-tests
       - name: Setup node
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
+        with:
+          NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download artifact of dependencies
         uses: actions/download-artifact@v3
         with:
@@ -28,9 +30,6 @@ jobs:
           path: .
       - name: Unzip artifact of dependencies
         run: tar -xzf node_modules.tgz
-        shell: bash
-      - name: npm install
-        run: npm install
         shell: bash
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST
