@@ -21,7 +21,7 @@ on:
 
 jobs:
   gitflow-validation:
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@staging
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@feature/{LM-10377}-PR-secret-fix
     with:
       GH_BASE_REF: ${{ inputs.GH_BASE_REF }}
       GH_HEAD_REF: ${{ inputs.GH_HEAD_REF }}
