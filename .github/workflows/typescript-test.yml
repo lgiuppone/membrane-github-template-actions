@@ -26,7 +26,8 @@ jobs:
         with:
           name: node_modules.zip
           path: .
-      - run: unzip -q node_modules.zip
+      - name: Unzip artifact of dependencies
+        run: unzip node_modules.zip
         shell: bash
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST

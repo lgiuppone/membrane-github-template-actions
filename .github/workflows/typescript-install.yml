@@ -15,9 +15,11 @@ jobs:
     steps:
       - name: Setup node
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
-      - run: npm ci --ignore-scripts
+      - name: Install dependencies (npm ci)
+        run: npm ci --ignore-scripts
         shell: bash
-      - run: zip -qr node_modules.zip node_modules
+      - name: Zip artifact of dependencies
+        run: zip -qr node_modules.zip node_modules
         shell: bash
       - name: Upload artifact of dependencies
         uses: actions/upload-artifact@v2

@@ -20,7 +20,8 @@ jobs:
         with:
           name: node_modules.zip
           path: .
-      - run: unzip -q node_modules.zip
+      - name: Unzip artifact of dependencies
+        run: unzip -q node_modules.zip
         shell: bash
       - name: Build code
         run: npm run build
