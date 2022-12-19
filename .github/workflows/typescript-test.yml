@@ -24,8 +24,10 @@ jobs:
       - name: Download artifact of dependencies
         uses: actions/download-artifact@v3
         with:
-          name: node_modules
+          name: node_modules.zip
           path: .
+      - run: unzip -q node_modules.zip
+        shell: bash
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST
         run: npm test

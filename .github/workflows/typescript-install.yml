@@ -1,4 +1,4 @@
-name: '📦 Build application'
+name: '📦 Install application dependencies'
 
 on: 
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  build:
+  install:
     runs-on: ubuntu-latest
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -17,8 +17,10 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
       - run: npm ci --ignore-scripts
         shell: bash
+      - run: zip -qr node_modules.zip node_modules
+        shell: bash
       - name: Upload artifact of dependencies
         uses: actions/upload-artifact@v2
         with:
-          name: node_modules
-          path: node_modules/
+          name: node_modules.zip
+          path: node_modules.zip
