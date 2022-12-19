@@ -1,4 +1,4 @@
-name: '📦 Lint codebase'
+name: '📦 Build application'
 
 on: 
   workflow_call:
@@ -8,18 +8,17 @@ on:
         type: string
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Setup node
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
-      - name: Download artifact of dependencies
-        uses: actions/download-artifact@v3
+      - run: npm ci --ignore-scripts
+        shell: bash
+      - name: Upload artifact of dependencies
+        uses: actions/upload-artifact@v2
         with:
           name: node_modules
-          path: .
-      - name: Run lint
-        continue-on-error: true
-        run: npm run lint
+          path: node_modules/
