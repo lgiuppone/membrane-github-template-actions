@@ -23,14 +23,6 @@ jobs:
       - name: Unzip artifact of dependencies
         run: unzip -q node_modules.zip
         shell: bash
-      - name: Show where am i
-        run: ls -l; pwd
-        shell: bash
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Show where am i
-        run: ls -l; pwd
-        shell: bash
       - name: Run lint
         continue-on-error: true
         run: npm run lint
