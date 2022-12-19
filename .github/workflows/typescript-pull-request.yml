@@ -25,25 +25,27 @@ jobs:
     with:
       GH_BASE_REF: ${{ inputs.GH_BASE_REF }}
       GH_HEAD_REF: ${{ inputs.GH_HEAD_REF }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-    # secrets: implicit
 
   lint:
     needs: gitflow-validation
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@staging
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@feature/{LM-10377}-PR-secret-fix
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
 
   test:
     needs: gitflow-validation
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@staging
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@feature/{LM-10377}-PR-secret-fix
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   build:
     needs: [test, lint]
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@staging
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@feature/{LM-10377}-PR-secret-fix
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

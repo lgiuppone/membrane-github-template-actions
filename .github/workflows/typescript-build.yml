@@ -6,10 +6,16 @@ on:
       NODE_VERSION:
         required: true
         type: string
+    secrets:
+      NPM_TOKEN:
+        required: false
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/install@staging
         with:

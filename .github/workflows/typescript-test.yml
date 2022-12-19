@@ -9,10 +9,16 @@ on:
       HAS_UNIT_TEST:
         required: true
         type: boolean
+    secrets:
+      NPM_TOKEN:
+        required: false
+        type: string
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/check-tests@staging
         id: check-tests
