@@ -9,7 +9,6 @@ on:
     secrets:
       NPM_TOKEN:
         required: false
-        type: string
 
 jobs:
   build:
