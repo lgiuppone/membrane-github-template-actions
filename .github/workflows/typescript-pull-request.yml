@@ -21,28 +21,28 @@ on:
 
 jobs:
   gitflow-validation:
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@feature/{LM-10377}-PR-secret-fix
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@staging
     with:
       GH_BASE_REF: ${{ inputs.GH_BASE_REF }}
       GH_HEAD_REF: ${{ inputs.GH_HEAD_REF }}
 
   install:
     needs: gitflow-validation
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@feature/{LM-10377}-PR-secret-fix
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
     secrets: inherit
 
   lint:
     needs: install
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@feature/{LM-10377}-PR-secret-fix
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
     secrets: inherit
 
   test:
     needs: install
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@feature/{LM-10377}-PR-secret-fix
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
@@ -50,7 +50,7 @@ jobs:
 
   build:
     needs: [test, lint]
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@feature/{LM-10377}-PR-secret-fix
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
     secrets: inherit

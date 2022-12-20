@@ -14,7 +14,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@staging
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Install dependencies (npm ci)

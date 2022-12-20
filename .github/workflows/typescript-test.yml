@@ -20,7 +20,7 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/check-tests@staging
         id: check-tests
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10377}-PR-secret-fix
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@staging
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download artifact of dependencies
