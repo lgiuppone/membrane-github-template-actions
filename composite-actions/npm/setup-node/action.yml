@@ -1,10 +1,9 @@
-name: 'Install dependencies'
-description: 'Checkout to branch and install node dependencies'
+name: 'Set up npm/nodejs'
+description: 'Set up a node environment before interacting with codebase'
 inputs:
   NODE_VERSION:
-    description: 'Major version of NodeJS to use'
+    description: "Node version to be set up"
     required: true
-    type: string
 runs:
   using: "composite"
   steps:
@@ -17,5 +16,3 @@ runs:
         registry-url: https://registry.npmjs.org/
         cache: npm
         cache-dependency-path: package-lock.json
-    - run: npm ci --ignore-scripts
-      shell: bash

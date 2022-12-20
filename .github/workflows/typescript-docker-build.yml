@@ -51,7 +51,7 @@ jobs:
       IMAGE_NAME: ${{ steps.docker-build.outputs.IMAGE_NAME }}
       IMAGE_TAG: ${{ steps.docker-build.outputs.IMAGE_TAG }}
     env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}    
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3

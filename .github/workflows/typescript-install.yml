@@ -1,4 +1,4 @@
-name: '📦 Lint codebase'
+name: '📦 Install application dependencies'
 
 on: 
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  lint:
+  install:
     runs-on: ubuntu-latest
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -17,14 +17,14 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@staging
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
-      - name: Download artifact of dependencies
-        uses: actions/download-artifact@v3
+      - name: Install dependencies (npm ci)
+        run: npm ci --ignore-scripts
+        shell: bash
+      - name: Zip artifact of dependencies
+        run: tar -czf node_modules.tgz node_modules
+        shell: bash
+      - name: Upload artifact of dependencies
+        uses: actions/upload-artifact@v2
         with:
           name: node_modules.tgz
-          path: .
-      - name: Unzip artifact of dependencies
-        run: tar -xzf node_modules.tgz
-        shell: bash
-      - name: Run lint
-        continue-on-error: true
-        run: npm run lint
+          path: node_modules.tgz

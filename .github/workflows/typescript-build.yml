@@ -10,9 +10,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
-      - uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/install@staging
+      - name: Setup node
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/staging
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      - name: Download artifact of dependencies
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules.tgz
+          path: .
+      - name: Unzip artifact of dependencies
+        run: tar -xzf node_modules.tgz
+        shell: bash
       - name: Build code
         run: npm run build

@@ -25,25 +25,32 @@ jobs:
     with:
       GH_BASE_REF: ${{ inputs.GH_BASE_REF }}
       GH_HEAD_REF: ${{ inputs.GH_HEAD_REF }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-    # secrets: implicit
+
+  install:
+    needs: gitflow-validation
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@staging
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
 
   lint:
-    needs: gitflow-validation
+    needs: install
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
 
   test:
-    needs: gitflow-validation
+    needs: install
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
+    secrets: inherit
 
   build:
     needs: [test, lint]
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
