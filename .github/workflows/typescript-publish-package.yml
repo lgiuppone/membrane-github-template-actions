@@ -23,10 +23,9 @@ jobs:
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@staging
 
   install:
-    needs: gitflow-validation
     if: |
-      always() &&
-      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
+      always() && !contains(needs.*.result, 'failure')
+    needs: gitflow-validation
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
