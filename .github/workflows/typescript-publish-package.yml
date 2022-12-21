@@ -24,7 +24,7 @@ jobs:
 
   install:
     if: |
-      always() && !contains(needs.*.result, 'failure')
+      always()
     needs: gitflow-validation
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@staging
     with:
