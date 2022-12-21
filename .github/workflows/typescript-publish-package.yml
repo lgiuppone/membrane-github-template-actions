@@ -1,0 +1,59 @@
+# This entire workflow, could just be a call to typescript-pull-request.yml with variables.
+
+name: Build & Publish to Registry
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: false
+        type: boolean
+        default: false
+      VALIDATE_GITFLOW:
+        required: false
+        type: boolean
+        default: false
+      NODE_VERSION:
+        required: true
+        type: string
+
+jobs:
+  gitflow-validation:
+    if: ${{ inputs.VALIDATE_GITFLOW }}
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@staging
+
+  install:
+    needs: gitflow-validation
+    if: |
+      always() &&
+      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@staging
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
+
+  lint:
+    needs: install
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@staging
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
+
+  test:
+    needs: install
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@staging
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
+    secrets: inherit
+
+  build:
+    needs: [test, lint]
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@staging
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      NPM_REGISTRY: npm.pkg.github.com
+      NPM_SCOPE: "@${{ github.repository_owner }}"
+      # @Lattice-Trade should be default when using npm.pkg.github.com
+      # https://github.com/actions/setup-node/blob/v3/action.yml#L20
+    secrets: inherit

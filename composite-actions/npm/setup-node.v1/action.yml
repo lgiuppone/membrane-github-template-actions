@@ -4,6 +4,13 @@ inputs:
   NODE_VERSION:
     description: "Node version to be set up"
     required: true
+  NPM_REGISTRY:
+    description: "Hostname of NPM registry to setup"
+    required: false
+    default: registry.npmjs.org
+  NPM_SCOPE:
+    description: "Account owner to use as GitHub Packages scope"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -13,6 +20,7 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.NODE_VERSION }}
-        registry-url: https://registry.npmjs.org/
+        registry-url: https://${{ inputs.NPM_REGISTRY }}/
         cache: npm
         cache-dependency-path: package-lock.json
+        scope: ${{ inputs.NPM_SCOPE }}
