@@ -32,8 +32,6 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@main
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
-          NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
-          NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
       - name: Download and unzip dependencies artficat
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
       - name: Run unit tests

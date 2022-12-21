@@ -38,6 +38,7 @@ jobs:
 
   lint:
     needs: install
+    if: always() && needs.install.result == 'success'
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -45,6 +46,7 @@ jobs:
 
   test:
     needs: install
+    if: always() && needs.install.result == 'success'
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -53,6 +55,9 @@ jobs:
 
   build:
     needs: [test, lint]
+    if: |
+      always() &&
+      (needs.lint.result == 'success' && needs.test.result == 'success')
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}

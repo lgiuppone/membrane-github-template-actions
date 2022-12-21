@@ -26,8 +26,6 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@main
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
-          NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
-          NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
       - name: Install dependencies (npm ci)
         run: npm ci --ignore-scripts
         shell: bash
