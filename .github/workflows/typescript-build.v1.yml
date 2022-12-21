@@ -26,6 +26,8 @@ jobs:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
           NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
           NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
       - name: Download and unzip dependencies artficat
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
       - name: Build code
