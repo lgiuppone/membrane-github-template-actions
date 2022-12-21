@@ -33,7 +33,7 @@ jobs:
       - name: Build code
         run: npm run build
       - name: Publish to GitHub Package Registry
-        if: NPM_REGISTRY == 'npm.pkg.github.com'
+        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: |
           cp package.json dist/
           npm publish dist
