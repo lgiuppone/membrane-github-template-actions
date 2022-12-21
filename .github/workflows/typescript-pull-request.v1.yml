@@ -28,6 +28,9 @@ jobs:
 
   install:
     needs: gitflow-validation
+    if: |
+      always() &&
+      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
