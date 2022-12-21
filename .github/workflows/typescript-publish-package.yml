@@ -20,7 +20,7 @@ on:
 jobs:
   gitflow-validation:
     if: ${{ inputs.VALIDATE_GITFLOW }}
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@staging
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@feature/{LM-10511}-npm-publishing
 
   install:
     if: |
