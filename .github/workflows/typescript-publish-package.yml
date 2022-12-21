@@ -17,6 +17,9 @@ on:
         required: true
         type: string
 
+env:
+  NPM_REGISTRY: 'npm.pkg.github.com'
+
 jobs:
   gitflow-validation:
     if: ${{ inputs.VALIDATE_GITFLOW }}
@@ -52,7 +55,7 @@ jobs:
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@staging
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
-      NPM_REGISTRY: "npm.pkg.github.com"
+      NPM_REGISTRY: ${{ env.NPM_REGISTRY }}
       NPM_SCOPE: "@${{ github.repository_owner }}"
       # @Lattice-Trade should be default when using npm.pkg.github.com
       # https://github.com/actions/setup-node/blob/v3/action.yml#L20
