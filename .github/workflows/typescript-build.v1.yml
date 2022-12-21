@@ -10,7 +10,7 @@ on:
         description: "Hostname of NPM registry to setup"
         required: false
         type: string
-        default: registry.npmjs.org
+        default: "registry.npmjs.org"
       NPM_SCOPE:
         description: "Account owner to use as GitHub Packages scope"
         type: string
