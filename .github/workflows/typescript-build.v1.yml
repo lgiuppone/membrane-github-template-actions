@@ -19,6 +19,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Setup node
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10511}-npm-publishing
@@ -26,14 +28,10 @@ jobs:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
           NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
           NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
       - name: Download and unzip dependencies artficat
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
       - name: Build code
         run: npm run build
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
@@ -42,3 +40,4 @@ jobs:
           npm publish dist
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_PUBLISH }}
