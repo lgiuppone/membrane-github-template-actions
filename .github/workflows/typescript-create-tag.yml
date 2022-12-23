@@ -23,7 +23,7 @@ jobs:
         shell: bash
       - name: Search latest commits
         id: latest-commits
-        run: echo result=$(${{ steps.last-tag.outputs.result }}..HEAD --oneline) >> $GITHUB_OUTPUT
+        run: echo result=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline) >> $GITHUB_OUTPUT
         shell: bash
       - name: Checkout to main
         uses: actions/checkout@v3
@@ -42,9 +42,6 @@ jobs:
 
           ## Compare
           $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
-
-          ## Merged by
-
           EOF
         shell: bash
       - name: Release
