@@ -16,6 +16,11 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      USE_PAT:
+        description: For repos that already published using Personal Access tokens, they should input a true. New repos will use $GITHUB_TOKEN.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -64,6 +69,7 @@ jobs:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       NPM_REGISTRY: npm.pkg.github.com
       NPM_SCOPE: "@${{ github.repository_owner }}"
+      USE_PAT: ${{ inputs.USE_PAT }}
       # @Lattice-Trade should be default when using npm.pkg.github.com
       # https://github.com/actions/setup-node/blob/v3/action.yml#L20
     secrets: inherit

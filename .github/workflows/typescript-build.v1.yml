@@ -15,6 +15,11 @@ on:
         description: "Account owner to use as GitHub Packages scope"
         type: string
         required: false
+      USE_PAT:
+        description: For old repos that used Personal Access tokens they should pass a TRUE. New repos will use $GITHUB_TOKEN.
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -32,6 +37,14 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
       - name: Build code
         run: npm run build
+      - name: Set the right publish token (PAT or GITHUB_TOKEN)
+        run: |
+          if [ ${{ inputs.USE_PAT }} = true ];then
+            echo PUBLISH_TOKEN=${{ secrets.NPM_TOKEN_PUBLISH }} >> $GITHUB_ENV;
+          else
+            echo PUBLISH_TOKEN=${{ secrets.GITHUB_TOKEN }} >> $GITHUB_ENV;
+          fi
+        shell: bash
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
@@ -39,4 +52,4 @@ jobs:
           cp package.json dist/
           npm publish dist
         env:
-          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ env.PUBLISH_TOKEN }}
