@@ -17,8 +17,11 @@ jobs:
         shell: bash
       - name: Check the tag doesn't exist
         id: tag-check
-        run: git show-ref --tags --verify --quiet -- "refs/tags/v${{ steps.read-package.outputs.version }}"; echo result=$? >> $GITHUB_OUTPUT
+        run: |
+          echo result=0 >> $GITHUB_OUTPUT
+          git show-ref --tags --verify --quiet -- "refs/tags/v${{ steps.read-package.outputs.version }}"
+          echo result=$? > $GITHUB_OUTPUT
         shell: bash
       - name: Package.json needs a version bump
-        if: steps.tag-check.outputs.result != 0
+        if: steps.tag-check.outputs.result == 0
         run: echo "::error file=package.json,line=${{ steps.read-package.outputs.line }}::Package.json requires a version bump as tag already exists"
