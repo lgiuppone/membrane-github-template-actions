@@ -17,7 +17,9 @@ jobs:
           ref: develop
       - name: Find last tag
         id: last-tag
-        run: echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
+        run: |
+          git fetch --prune --unshallow --tags --quiet
+          echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
         shell: bash
       - name: Search latest commits
         id: latest-commits
@@ -40,6 +42,9 @@ jobs:
 
           ## Compare
           $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
+
+          ## Merged by
+
           EOF
         shell: bash
       - name: Release
@@ -49,3 +54,4 @@ jobs:
           name: "v${{ steps.read-package.outputs.version }}"
           tag_name: "v${{ steps.read-package.outputs.version }}"
           target_commitish: main
+          token: ${{ secrets.RELEASE_TOKEN }}
