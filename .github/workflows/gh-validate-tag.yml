@@ -13,16 +13,17 @@ jobs:
         id: read-package
         run: |
           echo version=$(jq .version package.json) >> $GITHUB_OUTPUT
-          echo line=$(cat package.json | grep '"version":.*,') >> $GITHUB_OUTPUT
+          echo line=$(cat package.json | grep -n '"version":.*,' | cut -d':' -f1) >> $GITHUB_OUTPUT
         shell: bash
       - name: Check the tag doesn't exist
         id: tag-check
         run: |
-          git fetch --prune --unshallow --tags
+          git fetch --prune --unshallow --tags --quiet
           echo result=0 >> $GITHUB_OUTPUT
-          git show-ref --tags
           git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package.outputs.version }} || echo result=$? >> $GITHUB_OUTPUT
         shell: bash
       - name: Package.json needs a version bump
         if: steps.tag-check.outputs.result == 0
-        run: echo "::error file=package.json,line=${{ steps.read-package.outputs.line }}::Package.json requires a version bump as tag already exists"
+        run: |
+          echo "::error file=package.json,line=${{ steps.read-package.outputs.line }}::Package.json requires a version bump as the tag already exists"
+          exit 1
