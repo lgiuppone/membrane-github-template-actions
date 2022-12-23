@@ -36,6 +36,7 @@ jobs:
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: |
+          cat .npmrc
           cp package.json dist/
           npm publish dist
         env:
