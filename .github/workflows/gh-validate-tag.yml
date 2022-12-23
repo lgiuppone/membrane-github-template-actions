@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  build:
+  run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,9 +18,10 @@ jobs:
       - name: Check the tag doesn't exist
         id: tag-check
         run: |
+          git fetch --prune --unshallow --tags
           echo result=0 >> $GITHUB_OUTPUT
           git show-ref --tags
-          git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package.outputs.version }} || echo result=$? > $GITHUB_OUTPUT
+          git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package.outputs.version }} || echo result=$? >> $GITHUB_OUTPUT
         shell: bash
       - name: Package.json needs a version bump
         if: steps.tag-check.outputs.result == 0
