@@ -17,6 +17,11 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: write
+  packages: write
+  repository-projects: write
+
 jobs:
   gitflow-validation:
     if: ${{ inputs.VALIDATE_GITFLOW }}
@@ -51,9 +56,6 @@ jobs:
 
   build:
     needs: [test, lint]
-    permissions:
-      contents: read
-      packages: write
     if: |
       always() &&
       (needs.lint.result == 'success' && needs.test.result == 'success')
