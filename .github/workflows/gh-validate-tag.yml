@@ -19,8 +19,8 @@ jobs:
         id: tag-check
         run: |
           echo result=0 >> $GITHUB_OUTPUT
-          git show-ref --tags --verify --quiet -- "refs/tags/v${{ steps.read-package.outputs.version }}"
-          echo result=$? > $GITHUB_OUTPUT
+          git show-ref --tags
+          git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package.outputs.version }} || echo result=$? > $GITHUB_OUTPUT
         shell: bash
       - name: Package.json needs a version bump
         if: steps.tag-check.outputs.result == 0
