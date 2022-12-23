@@ -12,7 +12,7 @@ jobs:
       - name: Pull version from package.json
         id: read-package
         run: |
-          echo version=$(jq .version package.json) >> $GITHUB_OUTPUT
+          echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
           echo line=$(cat package.json | grep -n '"version":.*,' | cut -d':' -f1) >> $GITHUB_OUTPUT
         shell: bash
       - name: Check the tag doesn't exist

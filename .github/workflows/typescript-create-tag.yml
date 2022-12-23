@@ -16,19 +16,36 @@ jobs:
         with:
           ref: develop
       - name: Find last tag
+        id: last-tag
         run: echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Search latest commits
+        id: latest-commits
+        run: echo result=$(${{ steps.last-tag.outputs.result }}..HEAD --oneline) >> $GITHUB_OUTPUT
+        shell: bash
       - name: Checkout to main
         uses: actions/checkout@v3
       - name: Pull version from package.json
         id: read-package
         run: |
-          echo version=$(jq .version package.json) >> $GITHUB_OUTPUT
+          echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
           echo line=$(cat package.json | grep '"version":.*,') >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Create changelog
+        run: |
+          FILE=${{ github.workspace }}-CHANGELOG.txt
+          cat <<EOF >$FILE
+          ## Changes
+          ${{ steps.latest-commits.outputs.result }}
+
+          ## Compare
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
+          EOF
         shell: bash
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          generate_release_notes: true
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
           name: "v${{ steps.read-package.outputs.version }}"
           tag_name: "v${{ steps.read-package.outputs.version }}"
           target_commitish: main
