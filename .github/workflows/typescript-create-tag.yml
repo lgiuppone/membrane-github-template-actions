@@ -24,7 +24,13 @@ jobs:
         shell: bash
       - name: Search latest commits
         id: latest-commits
-        run: echo result=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline) >> $GITHUB_OUTPUT
+        # Fetch latest commits from develop branch, and parse it to a multiline string
+        run: |
+          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline)
+          COMMITS="${COMMITS//'%'/'%25'}"
+          COMMITS="${COMMITS//$'\n'/'%0A'}"
+          COMMITS="${COMMITS//$'\r'/'%0D'}"
+          echo result=$COMMITS >> $GITHUB_OUTPUT
         shell: bash
       - name: Checkout to main
         uses: actions/checkout@v3
