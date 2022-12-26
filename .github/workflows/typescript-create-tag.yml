@@ -42,10 +42,12 @@ jobs:
         run: |
           FILE=${{ github.workspace }}-CHANGELOG.txt
           echo ${{ steps.latest-commits.outputs.result }} > COMMITS.txt
-          sed 's/%0A/\n/g' COMMITS.txt > COMMITS-MULTILINE.txt
+          cat COMMITS.txt
+          export COMMITS=$(cat COMMITS.txt | sed 's/%0A/\n/g')
+          
           cat <<EOF >$FILE
           ## Changes
-          cat COMMITS-MULTILINE.txt
+          $COMMITS
 
           ## Compare
           $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
