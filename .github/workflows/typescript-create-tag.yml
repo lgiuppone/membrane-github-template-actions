@@ -41,10 +41,10 @@ jobs:
       - name: Create changelog
         run: |
           FILE=${{ github.workspace }}-CHANGELOG.txt
-          echo ${{ steps.latest-commits.outputs.result }} > COMMITS.txt
+          echo "${{ steps.latest-commits.outputs.result }}" > COMMITS.txt
           cat COMMITS.txt
-          export COMMITS=$(cat COMMITS.txt | sed 's/%0A/\n/g')
-          
+          export COMMITS=$(sed 's/%0A/\n/g' COMMITS.txt)
+
           cat <<EOF >$FILE
           ## Changes
           $COMMITS
