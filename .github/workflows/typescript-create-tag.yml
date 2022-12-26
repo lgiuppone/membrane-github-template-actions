@@ -27,9 +27,7 @@ jobs:
         # Fetch latest commits from develop branch, and parse it to a multiline string
         run: |
           COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline)
-          COMMITS="${COMMITS//'%'/'%25'}"
           COMMITS="${COMMITS//$'\n'/'%0A'}"
-          COMMITS="${COMMITS//$'\r'/'%0D'}"
           echo result=$COMMITS >> $GITHUB_OUTPUT
         shell: bash
       - name: Checkout to main
@@ -43,9 +41,10 @@ jobs:
       - name: Create changelog
         run: |
           FILE=${{ github.workspace }}-CHANGELOG.txt
+          echo ${{ steps.latest-commits.outputs.result }} > COMMITS.txt
           cat <<EOF >$FILE
           ## Changes
-          ${{ steps.latest-commits.outputs.result }}
+          sed 's/%0A/\n/g' COMMITS.txt
 
           ## Compare
           $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
