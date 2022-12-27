@@ -76,13 +76,13 @@ jobs:
 
             Merging this PR will create a GitHub release and upload any assets that are created as part of the release build.
 
-      - name: Create PR release to develop for backport
+      - name: Create PR release to staging for backport
         uses: Lattice-Trade/create-pull-request@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           head: release/${{ inputs.GH_VERSION }}
-          base: develop
+          base: staging
           title: Backport version ${{ inputs.GH_VERSION }}
           reviewers: ${{ github.actor }}
           body: |
