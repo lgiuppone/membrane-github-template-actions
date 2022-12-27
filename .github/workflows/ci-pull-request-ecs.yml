@@ -50,6 +50,7 @@ jobs:
           script: |
               core.setFailed('origin branch from where the pull request is made is not known. Make sure to make a pull request from a known source branch, such as: staging, hotfix/*. For more details check the following documentation https://latticetrade.atlassian.net/l/cp/PUaek51t')
 
+
       - name: Use cache dependencies
         uses: actions/cache@v3
         with:

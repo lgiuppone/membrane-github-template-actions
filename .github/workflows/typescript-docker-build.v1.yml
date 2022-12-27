@@ -79,7 +79,7 @@ jobs:
       shell: bash
     - name: Login to ECR
       id: ecr-login
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login@staging
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login.v1@main
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
         AWS_ACCESS_KEY_ID: ${{ steps.env-vars.outputs.AWS_ACCESS_KEY_ID }}
@@ -95,7 +95,7 @@ jobs:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
     - name: Build and push to ECR
       id: docker-build
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/build-push@staging
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/build-push.v1@main
       with:
         ECR_REGISTRY: ${{ steps.ecr-login.outputs.ECR_REGISTRY }}
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
