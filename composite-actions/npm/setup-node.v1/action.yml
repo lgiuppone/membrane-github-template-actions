@@ -1,0 +1,18 @@
+name: 'Set up npm/nodejs'
+description: 'Set up a node environment before interacting with codebase'
+inputs:
+  NODE_VERSION:
+    description: "Node version to be set up"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install dependencies
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.NODE_VERSION }}
+        registry-url: https://registry.npmjs.org/
+        cache: npm
+        cache-dependency-path: package-lock.json

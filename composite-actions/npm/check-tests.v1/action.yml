@@ -1,0 +1,17 @@
+name: 'Check tests'
+description: 'Check if test scripts were defined in package.json'
+outputs:
+  HAS_UNIT_TEST:
+    description: "A string valued as true or false"
+    value: ${{ steps.check-tests.outputs.HAS_UNIT_TEST }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - id: check-tests
+      run: |
+        if node -e "process.exit((require('./package.json').scripts||{}).test?0:1)"; then
+        echo "HAS_UNIT_TEST=true" >> $GITHUB_OUTPUT; else
+        echo "HAS_UNIT_TEST=false" >> $GITHUB_OUTPUT; fi
+      shell: bash

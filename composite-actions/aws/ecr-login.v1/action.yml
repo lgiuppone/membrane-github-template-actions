@@ -1,0 +1,31 @@
+name: 'Log into ECR'
+description: 'Authenticate against AWS and log into ECR'
+inputs:
+  AWS_REGION:
+    required: true
+    description: 'AWS Region to deploy to'
+  AWS_ACCESS_KEY_ID:
+    description: 'Access key to access ECR'
+    required: true
+  AWS_SECRET_ACCESS_KEY:
+    description: 'Secret key to access ECR'
+    required: true
+outputs:
+  ECR_REGISTRY:
+    description: "A string valued as true or false"
+    value: ${{ steps.ecr-login.outputs.registry }}
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS credentials
+      id: aws-authentication
+      uses: aws-actions/configure-aws-credentials@master
+      with:
+        aws-access-key-id: ${{ inputs.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.AWS_REGION }}
+        # Needed to share image address to other jobs.
+        mask-aws-account-id: false
+    - name: Log into Amazon ECR
+      id: ecr-login
+      uses: aws-actions/amazon-ecr-login@main

@@ -1,0 +1,142 @@
+name: draft new release
+
+on:
+  workflow_call:
+    inputs:
+      GH_BRANCH:
+        required: true
+        type: string
+      GH_ENV:
+        required: true
+        type: string
+      HELM_NAME:
+        required: true
+        type: string
+      IMAGE_VERSION:
+        required: true
+        type: string
+      ARGOCD_URL:
+        required: true
+        type: string
+      CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL:
+        required: true
+        type: string
+      ARGOCD_DESTINATION_SERVER:
+        required: true
+        type: string
+      GH_REPO_URL:
+        required: true
+        type: string
+      ARGOCD_VAULT_PLUGIN_ENV:
+        required: true
+        type: string
+      ARGOCD_APP_PROJECT:
+        required: true
+        type: string
+      ARGOCD_DEST_NAMESPACE:
+        required: true
+        type: string
+      
+      
+
+jobs:
+  update-helm:
+    name: "Update helm & push"
+    runs-on: ubuntu-latest
+    outputs:
+      BRANCH_REF: ${{ steps.validate-branch.outputs.BRANCH_REF }}
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.GH_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: validate argocd-${{ inputs.GH_ENV }} branch exists
+        continue-on-error: true
+        id: validate-branch
+        run: |
+          echo "BRANCH_REF=$(git ls-remote --heads origin 'argocd-${{ inputs.GH_ENV }}')" >> $GITHUB_OUTPUT
+
+      - name: Checkout argocd-${{ inputs.GH_ENV }} branch
+        if: ${{ steps.validate-branch.outputs.BRANCH_REF != '' }}
+        uses: actions/checkout@v3
+        with:
+          ref: argocd-${{ inputs.GH_ENV }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+        # run: |
+        #   git switch argocd-${{ inputs.GH_ENV }}
+        #   git config pull.rebase false
+        #   git status
+
+      - name: Create argocd-${{ inputs.GH_ENV }} branch
+        if: ${{ steps.validate-branch.outputs.BRANCH_REF == '' }}
+        run: |
+          git checkout -b argocd-${{ inputs.GH_ENV }} ${{ inputs.GH_BRANCH }}
+          git status
+
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub actions"
+          git config user.email noreply@github.com
+
+      - name: Merge from ${{ inputs.GH_BRANCH }}
+        run: |
+          git merge origin/${{ inputs.GH_BRANCH }} --strategy-option theirs
+
+      - name: Upgrade Tag ArgoCD
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
+          value: ${{ inputs.IMAGE_VERSION }}
+          createPR: false
+          commitChange: false
+          message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
+          #branch: argocd-${{ inputs.GH_ENV }}
+          # masterBranchName: ${{ inputs.GH_BRANCH }}
+          # targetBranch: argocd-${{ inputs.GH_ENV }}
+          # updateFile: true
+
+      - name: Commit & Push changes
+        id: make-commit
+        run: |
+          git add .
+          export MESSAGE="${{ github.actor }} updated to commit $(echo ${{ github.sha }} | cut -c1-7)"
+          if [ ${{ inputs.TG_ENV }} != develop ]; then
+            export MESSAGE="$MESSAGE - ${{ inputs.IMAGE_VERSION }}"
+          fi
+          git commit --message "$MESSAGE"
+          git push  --set-upstream origin argocd-${{ inputs.GH_ENV }}
+
+  createAppInArgoCD:
+    name: "Create App in ArgoCD"
+    runs-on: [self-hosted, k8s]
+    needs: update-helm
+    container: ghcr.io/jodybro/argocd-cli:1.1.0
+    steps:
+      - name: Create app in argo
+        if: ${{ needs.update-helm.outputs.BRANCH_REF == '' }}
+        run: |
+          echo "Login to argocd"
+          argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
+          echo "Creating app in argocd"
+          argocd app create ${{ inputs.HELM_NAME }}-${{ inputs.GH_ENV }} \
+          --repo ${{ inputs.GH_REPO_URL }} \
+          --revision argocd-${{ inputs.GH_ENV }} \
+          --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
+          --path .infra/${{ inputs.GH_ENV }}/ \
+          --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
+          --sync-policy automated \
+          --self-heal \
+          --grpc-web \
+          --project ${{ inputs.ARGOCD_APP_PROJECT }} \
+          --dest-namespace ${{ inputs.ARGOCD_DEST_NAMESPACE }} \
+          --annotations notifications.argoproj.io/subscribe.on-deployed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-health-degraded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-failed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-running.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-succeeded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }}

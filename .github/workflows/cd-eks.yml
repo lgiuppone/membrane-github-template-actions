@@ -1,0 +1,122 @@
+name: Deploy in AWS Elastic Container Services
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        required: true
+        type: string
+      ECR_NAME:
+        required: true
+        type: string
+      GH_BRANCH_NAME:
+        required: true
+        type: string
+      GH_ENV:
+        required: true
+        type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_SHA:
+        required: true
+        type: string
+      GH_REF:
+        required: true
+        type: string
+      SLACK_CHANNEL:
+        required: true
+        type: string
+      NEW_RELIC_APPLICATION_ID:
+        required: false
+        type: string
+      NODE_VERSION:
+        required: true
+        type: string
+      GH_VERSION:
+        required: false
+        type: string
+      METADATA_PACKAGE:
+        required: false
+        type: string
+        default: package.json
+    # outputs:
+    #   IMAGE_NAME:
+    #     description: "The image name"
+    #     value: ${{ jobs.cd.outputs.IMAGE_NAME }}
+    #   IMAGE_TAG_DEV:
+    #     description: "The image tag develop"
+    #     value: ${{ jobs.cd.outputs.IMAGE_TAG_DEV }}
+    #   IMAGE_TAG_STG:
+    #     description: "The image tag staging"
+    #     value: ${{ jobs.cd.outputs.IMAGE_TAG_STG }}
+    secrets:
+      NPM_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_ACCESS_KEY_ID_PROD:
+        required: true
+      AWS_SECRET_ACCESS_KEY_PROD:
+        required: true
+      NEW_RELIC_ACCOUNT_ID:
+        required: false
+      NEW_RELIC_API_KEY:
+        required: false
+      SLACK_ALARMS_TOKEN:
+        required: true
+
+jobs:
+  promote-staging-to-prod:
+    if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: main
+    - name: Fetch current app version
+      run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
+    - name: Set credentials and tag for ECS or EKS build
+      id: env-vars
+      # If repository ends with dev, stg, or prod, it is an ECS deployment, and we need legacy credentials.
+      # If it doesn't, it is an EKS deployment, and we need NONPROD credentials.
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/set-credentials-for-ecr.v1@main
+      with:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID_NONPROD: ${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}
+        AWS_SECRET_ACCESS_KEY_NONPROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}
+    - name: Promote image from staging to production
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/promote-image.v1@main
+      with:
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ steps.env-vars.outputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.env-vars.outputs.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        GH_VERSION: ${{ env.VERSION }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: SUCCESS
+        color: good
+  
+    - name: Notify slack fail
+      if: failure()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: FAILED
+        color: danger
