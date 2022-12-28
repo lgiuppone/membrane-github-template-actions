@@ -1,0 +1,54 @@
+name: Test & Lint
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: true
+        type: boolean
+      VALIDATE_GITFLOW:
+        required: false
+        type: boolean
+        default: false
+      NODE_VERSION:
+        required: true
+        type: string
+
+jobs:
+  gitflow-validation:
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.v1.yml@main
+    if: ${{ inputs.VALIDATE_GITFLOW }}
+    with:
+      GH_BASE_REF: ${{ github.base_ref }}
+      GH_HEAD_REF: ${{ github.head_ref }}
+
+  install:
+    needs: gitflow-validation
+    if: |
+      always() &&
+      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.v1.yml@main
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
+
+  lint:
+    needs: install
+    if: |
+      always() &&
+      (needs.install.result == 'success')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.v1.yml@main
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    secrets: inherit
+
+  test:
+    needs: install
+    if: |
+      always() &&
+      (needs.install.result == 'success')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.v1.yml@main
+    with:
+      NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
+    secrets: inherit
