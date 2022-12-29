@@ -1,0 +1,196 @@
+name: Deploy to prod
+
+on:
+  workflow_call:
+    inputs:
+      BACKEND_APPLICATION:
+        required: true
+        type: string
+      BACKEND_ENVIRONMENT:
+        required: true
+        type: string
+      WORKER_APPLICATION:
+        required: true
+        type: string
+      WORKER_ENVIRONMENT:
+        required: true
+        type: string
+      BUCKET:
+        required: true
+        type: string
+      GH_BRANCH_NAME:
+        required: true
+        type: string
+      GH_ENV:
+        required: true
+        type: string
+      GH_PR_MERGED:
+        required: true
+        type: boolean
+      GH_SHA:
+        required: true
+        type: string
+      GH_REF:
+        required: true
+        type: string
+      SLACK_CHANNEL:
+        required: true
+        type: string
+      NEW_RELIC_APPLICATION_ID:
+        required: false
+        type: string
+      NEW_RELIC_WORKER_ID:
+        required: false
+        type: string
+      NODE_VERSION:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true    
+      SLACK_ALARMS_TOKEN:
+        required: true
+      NEW_RELIC_ACCOUNT_ID:
+        required: false
+      NEW_RELIC_API_KEY:
+        required: false
+        
+jobs:
+  cd:
+    if: ${{ inputs.GH_PR_MERGED }} 
+    name: deploy to ${{ inputs.GH_ENV }} 
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.GH_ENV }} 
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+          ref: ${{ inputs.GH_BRANCH_NAME }} 
+
+    - uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: STARTED
+        color: good
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+  
+    - name: Use cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v3
+      with:
+          node-version: ${{ inputs.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+
+    - name: Generate swagger doc
+      if: ${{ inputs.GH_ENV == 'develop' || inputs.GH_ENV == 'staging' }}
+      run: npx swagger-inline './**.js' --base ./swaggerBase.yaml > swaggerDoc.yaml
+
+    - name: Generate index.html docs
+      if: ${{ inputs.GH_ENV == 'develop' || inputs.GH_ENV == 'staging' }}
+      run: npx redoc-cli@0.13.2 bundle swaggerDoc.yaml --output docs/index.html
+
+    - name: delete default cron
+      run: rm -f cron.yaml
+
+    - name: Select and set cron-dev into code
+      if: ${{ inputs.GH_ENV == 'develop' }}
+      run: cat cron-dev.yml > cron.yaml
+
+    - name: Select and set cron-staging into code
+      if: ${{ inputs.GH_ENV == 'staging' }}
+      run: cat cron-staging.yml > cron.yaml
+
+    - name: Select and set cron-prod into code
+      if: ${{ inputs.GH_ENV == 'production' }}
+      run: cat cron-prod.yml > cron.yaml
+
+    - name: Replace Token in .npmrc
+      run: sed -i 's/\${NPM_TOKEN}/${{ secrets.NPM_TOKEN }}/g' .npmrc
+      
+    - name: Generate deployment package
+      run: zip -r deploy.zip . -x '*.git*'
+          
+    - name: Code build
+      run: npm ci --ignore-scripts
+
+    - name: Deploy Backend application to EB
+      uses: einaregilsson/beanstalk-deploy@v21
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ inputs.BACKEND_APPLICATION }}
+        environment_name: ${{ inputs.BACKEND_ENVIRONMENT }}
+        version_label: ${{ inputs.GH_SHA }}
+        wait_for_environment_recovery: 120
+        wait_for_deployment: false
+        region: us-east-2
+        deployment_package: deploy.zip
+        existing_bucket_name: ${{ inputs.BUCKET }}
+        use_existing_version_if_available: true
+
+    - name: Deploy Worker application to EB 
+      uses: einaregilsson/beanstalk-deploy@v21
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: ${{ inputs.WORKER_APPLICATION }}
+        environment_name: ${{ inputs.WORKER_ENVIRONMENT }}
+        wait_for_environment_recovery: 120
+        wait_for_deployment: false
+        version_label: ${{ inputs.GH_SHA }}
+        region: us-east-2
+        deployment_package: deploy.zip
+        existing_bucket_name: ${{ inputs.BUCKET }}
+        use_existing_version_if_available: true
+
+    - name: Create New Relic deployment marker for Backend
+      uses: newrelic/deployment-marker-action@v1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+        applicationId: ${{ inputs.NEW_RELIC_APPLICATION_ID }}
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+
+    - name: Create New Relic deployment marker for Worker
+      uses: newrelic/deployment-marker-action@v1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        apiKey: ${{ secrets.NEW_RELIC_API_KEY }}
+        applicationId: ${{ inputs.NEW_RELIC_WORKER_ID }}
+        revision: "${{ inputs.GH_REF }}-${{ inputs.GH_SHA }}"
+
+    - name: Notify slack success
+      if: success()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: SUCCESS
+        color: good
+
+    - name: Notify slack fail
+      if: failure()
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_ALARMS_TOKEN }}
+      uses: Lattice-Trade/github-action-slack-notify-build@main
+      with:
+        channel: ${{ inputs.SLACK_CHANNEL }}
+        status: FAILED
+        color: danger
