@@ -50,4 +50,4 @@ runs:
         build-args: |
           NPM_TOKEN=${{ inputs.NPM_TOKEN }}
           COMMIT=${{ github.sha }}
-          LISTENER-${{ inputs.LISTENER }}
+          LISTENER=${{ inputs.LISTENER }}
