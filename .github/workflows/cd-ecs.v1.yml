@@ -70,10 +70,7 @@ on:
 
 jobs:
   deploy_ecs_task:
-    if: |
-      always() &&
-      inputs.GH_PR_MERGED &&
-      (needs.promote-staging-to-prod.result == 'success' || needs.promote-staging-to-prod.result == 'skipped')
+    if: ${{ inputs.GH_PR_MERGED }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.GH_ENV }}
