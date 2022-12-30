@@ -36,16 +36,16 @@ on:
       SOLANA:
         required: true
         type: string
-      BITCOIND: 
+      BITCOIND:
         required: true
         type: string
-      ETHEREUM: 
+      ETHEREUM:
         required: true
         type: string
-      COMMON: 
+      COMMON:
         required: true
         type: string
-      
+
 jobs:
   update-helm:
     name: "Update helm & push"
@@ -53,7 +53,7 @@ jobs:
     outputs:
       BRANCH_REF: ${{ steps.validate-branch.outputs.BRANCH_REF }}
     env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -92,7 +92,7 @@ jobs:
 
       - name: Upgrade Tag SOLANA
         uses: fjogeleit/yaml-update-action@main
-        if: ${{ inputs.SOLANA }} == 'true' || ${{ inputs.COMMON }} == 'true'
+        if: ${{ inputs.SOLANA == 'true' || inputs.COMMON == 'true' }}
         with:
           valueFile: ".infra/${{ inputs.GH_ENV }}/solana/values.yaml"
           propertyPath: solana.image.tag
@@ -103,7 +103,7 @@ jobs:
 
       - name: Upgrade Tag BITCOIND
         uses: fjogeleit/yaml-update-action@main
-        if: ${{ inputs.BITCOIND }} == 'true' || ${{ inputs.COMMON }} == 'true'
+        if: ${{ inputs.BITCOIND == 'true' || inputs.COMMON == 'true' }}
         with:
           valueFile: ".infra/${{ inputs.GH_ENV }}/bitcoind/values.yaml"
           propertyPath: bitcoind.image.tag
@@ -111,10 +111,10 @@ jobs:
           createPR: false
           commitChange: false
           message: "Upgrade BITCOIND image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-      
+
       - name: Upgrade Tag ETHEREUM
         uses: fjogeleit/yaml-update-action@main
-        if: ${{ inputs.ETHEREUM }} == 'true' || ${{ inputs.COMMON }} == 'true'
+        if: ${{ inputs.ETHEREUM == 'true' || inputs.COMMON == 'true' }}
         with:
           valueFile: ".infra/${{ inputs.GH_ENV }}/ethereum/values.yaml"
           propertyPath: ethereum.image.tag
