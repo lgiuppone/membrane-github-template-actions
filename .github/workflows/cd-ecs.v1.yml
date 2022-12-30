@@ -46,10 +46,6 @@ on:
       NODE_VERSION:
         required: true
         type: string
-      METADATA_PACKAGE:
-        required: false
-        type: string
-        default: package.json
       IMAGE_NAME:
         # Output from build job (see typescript-docker-build.yml)
         required: false
@@ -73,51 +69,8 @@ on:
         required: true
 
 jobs:
-  promote-staging-to-prod:
-    if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME == 'main' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      IMAGE_NAME: ${{ steps.promote-image.outputs.IMAGE_NAME }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        ref: main
-    - name: Fetch current app version
-      run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
-    - name: Set repositories names
-      run: echo STG_ECR_REPOSITORY=`echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f2- | rev`-stg >> $GITHUB_ENV
-      shell: bash
-    - name: Set credentials and tag for ECS or EKS build
-      id: env-vars
-      # If repository ends with dev, stg, or prod, it is an ECS deployment, and we need legacy credentials.
-      # If it doesn't, it is an EKS deployment, and we need NONPROD credentials.
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/set-credentials-for-ecr.v1@main
-      with:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_ACCESS_KEY_ID_NONPROD: ${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}
-        AWS_SECRET_ACCESS_KEY_NONPROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}
-    - name: Promote image from staging to production
-      id: promote-image
-      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/promote-image.v1@main
-      with:
-        AWS_REGION: ${{ inputs.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: ${{ steps.env-vars.outputs.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ steps.env-vars.outputs.AWS_SECRET_ACCESS_KEY }}
-        AWS_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
-        AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
-        GH_VERSION: ${{ env.VERSION }}
-        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-        STG_ECR_REPOSITORY: ${{ env.STG_ECR_REPOSITORY }}
-
   deploy_ecs_task:
-    if: |
-      always() &&
-      inputs.GH_PR_MERGED &&
-      (needs.promote-staging-to-prod.result == 'success' || needs.promote-staging-to-prod.result == 'skipped')
-    needs: promote-staging-to-prod
+    if: ${{ inputs.GH_PR_MERGED }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: ${{ inputs.GH_ENV }}
@@ -149,7 +102,7 @@ jobs:
         task-definition: task-definition.json
         container-name: ${{ inputs.CONTAINER_NAME }}
         # One of the two will be an empty string by design
-        image: ${{ needs.promote-staging-to-prod.outputs.IMAGE_NAME }}${{ inputs.IMAGE_NAME }}
+        image: ${{ inputs.IMAGE_NAME }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@master

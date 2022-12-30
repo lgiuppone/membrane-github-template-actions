@@ -28,23 +28,64 @@ on:
       SLACK_CHANNEL:
         required: true
         type: string
-    # secrets:
-    #   AWS_ACCESS_KEY_ID:
-    #     required: true
-    #   AWS_SECRET_ACCESS_KEY:
-    #     required: true
-    #   NPM_TOKEN:
-    #     required: true
+      METADATA_PACKAGE:
+        required: false
+        type: string
+        default: package.json
     outputs:
       IMAGE_NAME:
         description: "A FQDN of the image to be built and pushed"
-        value: ${{ jobs.docker-build.outputs.IMAGE_NAME }}
+        value: "${{ jobs.docker-build.outputs.IMAGE_NAME }}${{ jobs.promote-staging-to-prod.outputs.IMAGE_NAME }}"
       IMAGE_TAG:
         description: "Only the tag of the image"
         value: ${{ jobs.docker-build.outputs.IMAGE_TAG }}
 jobs:
+  # In prod pipelines, we don't build the image again, just reuse staging image instead.
+  promote-staging-to-prod:
+    if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      IMAGE_NAME: ${{ steps.promote-image.outputs.IMAGE_NAME }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: main
+    - name: Fetch current app version
+      run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
+    - name: Set repositories names
+      run: echo STG_ECR_REPOSITORY=`echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f2- | rev`-stg >> $GITHUB_ENV
+      shell: bash
+    - name: Set credentials and tag for ECS or EKS build
+      id: env-vars
+      # If repository ends with dev, stg, or prod, it is an ECS deployment, and we need legacy credentials.
+      # If it doesn't, it is an EKS deployment, and we need NONPROD credentials.
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/set-credentials-for-ecr.v1@main
+      with:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID_NONPROD: ${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}
+        AWS_SECRET_ACCESS_KEY_NONPROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}
+    - name: Promote image from staging to production
+      id: promote-image
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/promote-image.v1@main
+      with:
+        AWS_REGION: ${{ inputs.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ steps.env-vars.outputs.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.env-vars.outputs.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+        AWS_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+        GH_VERSION: ${{ env.VERSION }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
+        STG_ECR_REPOSITORY: ${{ env.STG_ECR_REPOSITORY }}
+
   docker-build:
-    if: ${{ inputs.GH_PR_MERGED }}
+    if: |
+      always() &&
+      inputs.GH_PR_MERGED &&
+      (needs.promote-staging-to-prod.result == 'success' || needs.promote-staging-to-prod.result == 'skipped')
+    needs: promote-staging-to-prod
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
