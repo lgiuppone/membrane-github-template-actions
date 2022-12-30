@@ -94,7 +94,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.SOLANA }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/solana/${{ inputs.GH_ENV }}/values.yaml"
           propertyPath: solana.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -105,7 +105,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.BITCOIND }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/bitcoind/${{ inputs.GH_ENV }}/values.yaml"
           propertyPath: bitcoind.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -116,7 +116,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.ETHEREUM }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/ethereum/${{ inputs.GH_ENV }}/values.yaml"
           propertyPath: ethereum.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -140,17 +140,61 @@ jobs:
     needs: update-helm
     container: ghcr.io/jodybro/argocd-cli:1.1.0
     steps:
-      - name: Create app in argo
+      - name: Create solana app in argo
         if: ${{ needs.update-helm.outputs.BRANCH_REF == '' }}
         run: |
           echo "Login to argocd"
           argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
           echo "Creating app in argocd"
-          argocd app create listeners-${{ inputs.GH_ENV }} \
+          argocd app create solana-${{ inputs.GH_ENV }} \
           --repo ${{ inputs.GH_REPO_URL }} \
           --revision argocd-${{ inputs.GH_ENV }} \
           --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
-          --path .infra/${{ inputs.GH_ENV }}/ \
+          --path .infra/solana/${{ inputs.GH_ENV }}/ \
+          --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
+          --sync-policy automated \
+          --self-heal \
+          --grpc-web \
+          --project ${{ inputs.ARGOCD_APP_PROJECT }} \
+          --dest-namespace ${{ inputs.ARGOCD_DEST_NAMESPACE }} \
+          --annotations notifications.argoproj.io/subscribe.on-deployed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-health-degraded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-failed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-running.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-succeeded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }}
+      - name: Create ethereum app in argo
+        if: ${{ needs.update-helm.outputs.BRANCH_REF == '' }}
+        run: |
+          echo "Login to argocd"
+          argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
+          echo "Creating app in argocd"
+          argocd app create ethereum-${{ inputs.GH_ENV }} \
+          --repo ${{ inputs.GH_REPO_URL }} \
+          --revision argocd-${{ inputs.GH_ENV }} \
+          --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
+          --path .infra/ethereum/${{ inputs.GH_ENV }}/ \
+          --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
+          --sync-policy automated \
+          --self-heal \
+          --grpc-web \
+          --project ${{ inputs.ARGOCD_APP_PROJECT }} \
+          --dest-namespace ${{ inputs.ARGOCD_DEST_NAMESPACE }} \
+          --annotations notifications.argoproj.io/subscribe.on-deployed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-health-degraded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-failed.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-running.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }} \
+          --annotations notifications.argoproj.io/subscribe.on-sync-succeeded.slack=${{ inputs.CRYPTOCENTRUS_NOTIFICATIONS_SLACK_CHANNEL }}
+      - name: Create bitcoind app in argo
+        if: ${{ needs.update-helm.outputs.BRANCH_REF == '' }}
+        run: |
+          echo "Login to argocd"
+          argocd login --insecure --grpc-web --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} ${{ inputs.ARGOCD_URL }}
+          echo "Creating app in argocd"
+          argocd app create bitcoind-${{ inputs.GH_ENV }} \
+          --repo ${{ inputs.GH_REPO_URL }} \
+          --revision argocd-${{ inputs.GH_ENV }} \
+          --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
+          --path .infra/bitcoind/${{ inputs.GH_ENV }}/ \
           --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
           --sync-policy automated \
           --self-heal \
