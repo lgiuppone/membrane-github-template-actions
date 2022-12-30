@@ -94,7 +94,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.SOLANA }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/solana/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/${{ inputs.GH_ENV }}/solana/values.yaml"
           propertyPath: solana.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -105,7 +105,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.BITCOIND }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/bitcoind/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/${{ inputs.GH_ENV }}/bitcoind/values.yaml"
           propertyPath: bitcoind.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -116,7 +116,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@main
         if: ${{ inputs.ETHEREUM }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
-          valueFile: ".infra/ethereum/${{ inputs.GH_ENV }}/values.yaml"
+          valueFile: ".infra/${{ inputs.GH_ENV }}/ethereum/values.yaml"
           propertyPath: ethereum.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
@@ -150,7 +150,7 @@ jobs:
           --repo ${{ inputs.GH_REPO_URL }} \
           --revision argocd-${{ inputs.GH_ENV }} \
           --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
-          --path .infra/solana/${{ inputs.GH_ENV }}/ \
+          --path .infra/${{ inputs.GH_ENV }}/solana/ \
           --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
           --sync-policy automated \
           --self-heal \
@@ -172,7 +172,7 @@ jobs:
           --repo ${{ inputs.GH_REPO_URL }} \
           --revision argocd-${{ inputs.GH_ENV }} \
           --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
-          --path .infra/ethereum/${{ inputs.GH_ENV }}/ \
+          --path .infra/${{ inputs.GH_ENV }}/ethereum/ \
           --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
           --sync-policy automated \
           --self-heal \
@@ -194,7 +194,7 @@ jobs:
           --repo ${{ inputs.GH_REPO_URL }} \
           --revision argocd-${{ inputs.GH_ENV }} \
           --dest-server ${{ inputs.ARGOCD_DESTINATION_SERVER }} \
-          --path .infra/bitcoind/${{ inputs.GH_ENV }}/ \
+          --path .infra/${{ inputs.GH_ENV }}/bitcoind/ \
           --config-management-plugin argocd-vault-plugin-helm-with-args-${{ inputs.ARGOCD_VAULT_PLUGIN_ENV }} \
           --sync-policy automated \
           --self-heal \
