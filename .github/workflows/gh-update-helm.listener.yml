@@ -9,9 +9,6 @@ on:
       GH_ENV:
         required: true
         type: string
-      HELM_NAME:
-        required: true
-        type: string
       IMAGE_VERSION:
         required: true
         type: string
@@ -36,9 +33,19 @@ on:
       ARGOCD_DEST_NAMESPACE:
         required: true
         type: string
+      SOLANA:
+        required: true
+        type: boolean
+      BITCOIND: 
+        required: true
+        type: boolean
+      ETHEREUM: 
+        required: true
+        type: boolean
+      COMMON: 
+        required: true
+        type: boolean
       
-      
-
 jobs:
   update-helm:
     name: "Update helm & push"
@@ -67,10 +74,6 @@ jobs:
           ref: argocd-${{ inputs.GH_ENV }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-        # run: |
-        #   git switch argocd-${{ inputs.GH_ENV }}
-        #   git config pull.rebase false
-        #   git status
 
       - name: Create argocd-${{ inputs.GH_ENV }} branch
         if: ${{ steps.validate-branch.outputs.BRANCH_REF == '' }}
@@ -87,19 +90,38 @@ jobs:
         run: |
           git merge origin/${{ inputs.GH_BRANCH }} --strategy-option theirs
 
-      - name: Upgrade Tag ArgoCD
+      - name: Upgrade Tag SOLANA
         uses: fjogeleit/yaml-update-action@main
+        if: ${{ inputs.SOLANA }} == 'true' || ${{ inputs.COMMON }} == 'true'
         with:
           valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
-          propertyPath: $["${{ inputs.HELM_NAME }}"].image.tag
+          propertyPath: solana.image.tag
           value: ${{ inputs.IMAGE_VERSION }}
           createPR: false
           commitChange: false
-          message: "Upgrade ${{ inputs.HELM_NAME }} image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
-          #branch: argocd-${{ inputs.GH_ENV }}
-          # masterBranchName: ${{ inputs.GH_BRANCH }}
-          # targetBranch: argocd-${{ inputs.GH_ENV }}
-          # updateFile: true
+          message: "Upgrade SOLANA image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
+
+      - name: Upgrade Tag BITCOIND
+        uses: fjogeleit/yaml-update-action@main
+        if: ${{ inputs.BITCOIND }} == 'true' || ${{ inputs.COMMON }} == 'true'
+        with:
+          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          propertyPath: bitcoind.image.tag
+          value: ${{ inputs.IMAGE_VERSION }}
+          createPR: false
+          commitChange: false
+          message: "Upgrade BITCOIND image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
+      
+      - name: Upgrade Tag ETHEREUM
+        uses: fjogeleit/yaml-update-action@main
+        if: ${{ inputs.ETHEREUM }} == 'true' || ${{ inputs.COMMON }} == 'true'
+        with:
+          valueFile: ".infra/${{ inputs.GH_ENV }}/values.yaml"
+          propertyPath: ethereum.image.tag
+          value: ${{ inputs.IMAGE_VERSION }}
+          createPR: false
+          commitChange: false
+          message: "Upgrade ETHEREUM image tag to ${{ inputs.IMAGE_VERSION }} [skip ci]"
 
       - name: Commit & Push changes
         id: make-commit
