@@ -35,16 +35,16 @@ on:
         type: string
       SOLANA:
         required: true
-        type: boolean
+        type: string
       BITCOIND: 
         required: true
-        type: boolean
+        type: string
       ETHEREUM: 
         required: true
-        type: boolean
+        type: string
       COMMON: 
         required: true
-        type: boolean
+        type: string
       
 jobs:
   update-helm:
