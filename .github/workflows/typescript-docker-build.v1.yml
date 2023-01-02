@@ -34,7 +34,7 @@ on:
         default: package.json
     outputs:
       IMAGE_NAME:
-        description: "A FQDN of the image to be built and pushed"
+        description: "A FQDN of the image that was built OR promoted from staging. Only one of the two variables will have a value"
         value: "${{ jobs.docker-build.outputs.IMAGE_NAME }}${{ jobs.promote-staging-to-prod.outputs.IMAGE_NAME }}"
       IMAGE_TAG:
         description: "Only the tag of the image"
@@ -55,7 +55,15 @@ jobs:
     - name: Fetch current app version
       run: echo "VERSION=$(jq .version ${{ inputs.METADATA_PACKAGE }})" >> $GITHUB_ENV
     - name: Set repositories names
-      run: echo STG_ECR_REPOSITORY=`echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f2- | rev`-stg >> $GITHUB_ENV
+      # If repository ends with -prod, it's for ECS and staging repository will end with -stg instead.
+      # If it doesn't have an affix (ie: sync-check), it's an EKS repo, and staging will be named the same. (sync-check)
+      run: |
+        ENVIRONMENT=$(echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f1 | rev)
+        if [ $ENVIRONMENT = prod ];then 
+          echo STG_ECR_REPOSITORY=`echo ${{ inputs.ECR_REPOSITORY }} | rev | cut -d'-' -f2- | rev`-stg >> $GITHUB_ENV
+        else
+          echo STG_ECR_REPOSITORY=${{ inputs.ECR_REPOSITORY }} >> $GITHUB_ENV
+        fi
       shell: bash
     - name: Set credentials and tag for ECS or EKS build
       id: env-vars
@@ -84,7 +92,7 @@ jobs:
     if: |
       always() &&
       inputs.GH_PR_MERGED &&
-      (needs.promote-staging-to-prod.result == 'success' || needs.promote-staging-to-prod.result == 'skipped')
+      needs.promote-staging-to-prod.result == 'skipped'
     needs: promote-staging-to-prod
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -142,17 +150,3 @@ jobs:
         ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
         GH_SHA: ${{ steps.env-vars.outputs.IMAGE_TAG }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-    # - name: Run Trivy vulnerability scanner
-    #   uses: aquasecurity/trivy-action@master
-    #   with:
-    #       image-ref: '${{ steps.ecr-login.outputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}'
-    #       format: 'table'
-    #       exit-code: '0'
-    #       ignore-unfixed: true
-    #       vuln-type: 'os,library'
-    #       severity: 'CRITICAL,HIGH'
-    #   env:
-    #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #       ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
-    #       AWS_DEFAULT_REGION: ${{ inputs.AWS_REGION }}
