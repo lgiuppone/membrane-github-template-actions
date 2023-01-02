@@ -103,8 +103,8 @@ jobs:
       uses: Lattice-Trade/membrane-github-template-actions/composite-actions/aws/ecr-login.v1@main
       with:
         AWS_REGION: ${{ inputs.AWS_REGION }}
-        AWS_ACCESS_KEY_ID: "${{ steps.output.set-credentials-prod.AWS_ACCESS_KEY_ID }}${{ steps.output.set-credentials-legacy.AWS_ACCESS_KEY_ID }}"
-        AWS_SECRET_ACCESS_KEY: "${{ steps.output.set-credentials-prod.AWS_SECRET_ACCESS_KEY }}${{ steps.output.set-credentials-legacy.AWS_SECRET_ACCESS_KEY }}"
+        AWS_ACCESS_KEY_ID: "${{ steps.set-credentials-prod.output.AWS_ACCESS_KEY_ID }}${{ steps.set-credentials-legacy.output.AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "${{ steps.set-credentials-prod.output.AWS_SECRET_ACCESS_KEY }}${{ steps.set-credentials-legacy.output.AWS_SECRET_ACCESS_KEY }}"
   
     - name: Download task definition
       env:
