@@ -84,7 +84,7 @@ jobs:
 
     - name: Set credentials for prod
       id: set-credentials-prod
-      if: inputs.GH_BRANCH_NAME == main
+      if: ${{ inputs.GH_BRANCH_NAME == 'main' }}
       run: |
         echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_PROD }} >> $GITHUB_OUTPUT
         echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }} >> $GITHUB_OUTPUT
@@ -92,7 +92,7 @@ jobs:
 
     - name: Set credentials for legacy
       id: set-credentials-legacy
-      if: inputs.GH_BRANCH_NAME != main
+      if: ${{ inputs.GH_BRANCH_NAME != 'main' }}
       run: |
         echo AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} >> $GITHUB_OUTPUT
         echo AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} >> $GITHUB_OUTPUT
