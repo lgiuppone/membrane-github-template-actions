@@ -89,11 +89,7 @@ jobs:
         STG_ECR_REPOSITORY: ${{ env.STG_ECR_REPOSITORY }}
 
   docker-build:
-    if: |
-      always() &&
-      inputs.GH_PR_MERGED &&
-      needs.promote-staging-to-prod.result == 'skipped'
-    needs: promote-staging-to-prod
+    if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME != 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     outputs:
