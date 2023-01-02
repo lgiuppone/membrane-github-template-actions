@@ -75,6 +75,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_ACCESS_KEY_ID_NONPROD: ${{ secrets.AWS_ACCESS_KEY_ID_NONPROD }}
         AWS_SECRET_ACCESS_KEY_NONPROD: ${{ secrets.AWS_SECRET_ACCESS_KEY_NONPROD }}
+        ECR_REPOSITORY: ${{ inputs.ECR_REPOSITORY }}
     - name: Promote image from staging to production
       id: promote-image
       uses: Lattice-Trade/membrane-github-template-actions/composite-actions/docker/promote-image.v1@main

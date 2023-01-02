@@ -13,6 +13,9 @@ inputs:
   AWS_SECRET_ACCESS_KEY_NONPROD:
     description: 'Secret key to access ECR in NONPROD account'
     required: true
+  ECR_REPOSITORY:
+    description: 'ECR Repository to look for images'
+    required: true
 outputs:
   AWS_ACCESS_KEY_ID:
     description: "A string valued as true or false"
