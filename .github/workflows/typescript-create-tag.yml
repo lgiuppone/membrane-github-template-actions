@@ -22,8 +22,6 @@ jobs:
         # If this step returns empty, the repository has no tags
         id: last-tag
         run: |
-          echo $GITHUB_EVENT_PATH
-          cat $GITHUB_EVENT_PATH
           git tag | cat
           echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
         shell: bash
@@ -52,26 +50,30 @@ jobs:
         shell: bash
       - name: Version bump with patch
         id: npm-version-patch
-        # If repository has at least one tag and version was not changed manually this commit
+        # If repository has at least one tag and version was not changed manually
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         run: |
-          git config user.name "$(git log -n 1 --pretty=format:%an)"
-          git config user.email "$(git log -n 1 --pretty=format:%ae)"
-          echo "version=$(npm version patch --git-tag-version false)" >> $GITHUB_OUTPUT
+          export username=$(git log -n 1 --pretty=format:%an)
+          echo USERNAME="$username" >> $GITHUB_OUTPUT
+          echo EMAIL="$mail" >> $GITHUB_OUTPUT
+          git config user.name "$username"
+          git config user.email "$mail"
+          npm version patch --git-tag-version false
         shell: bash
       - name: Pull version from package.json after automatic bump
         id: read-package-after
         run: echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
         shell: bash
-      - name: Commit-push the new package.json
-        # If repository has at least one tag and version was not changed manually this commit
+      - name: Push the new package.json
+        # If repository has at least one tag and version was not changed manually
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Package.json version bump to ${{ steps.npm-version-patch.output.version }}
+          commit_message: Package.json version bump to ${{ steps.read-package-after.outputs.version }}
           commit_options: '--no-verify'
           branch: main
           file_pattern: 'package*json'
+          commit_user_name: ${{ steps.npm-version-patch.outputs.USERNAME }}
       - name: Create changelog
         run: |
           FILE="${{ github.workspace }}-CHANGELOG.txt"
