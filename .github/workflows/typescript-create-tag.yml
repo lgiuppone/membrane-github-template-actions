@@ -53,7 +53,7 @@ jobs:
         run: |
           git config user.name "$(git log -n 1 --pretty=format:%an)"
           git config user.email "$(git log -n 1 --pretty=format:%ae)"
-          npm version patch
+          npm version patch --git-tag-version false
         shell: bash
       - name: Pull version from package.json after automatic bump
         id: read-package-after
