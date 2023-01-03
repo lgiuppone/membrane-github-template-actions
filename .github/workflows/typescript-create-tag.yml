@@ -28,7 +28,7 @@ jobs:
       - name: Find latest commits since last tag
         id: latest-commits
         run: |
-          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline | sed 's/"//g' | grep -vi 'Package.json version bump to' | cat)
+          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline | sed 's/"//g' | grep -vi 'Package.json version bump to' || true)
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo result=$COMMITS >> $GITHUB_OUTPUT
         shell: bash
