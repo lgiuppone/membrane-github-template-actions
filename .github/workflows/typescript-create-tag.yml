@@ -28,7 +28,7 @@ jobs:
       - name: Find latest commits since last tag
         id: latest-commits
         run: |
-          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline)
+          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline | sed 's/"//g' | grep -vi 'version bump')
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo result=$COMMITS >> $GITHUB_OUTPUT
         shell: bash
@@ -49,12 +49,13 @@ jobs:
           git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package-before.outputs.version }} || echo result=$? >> $GITHUB_OUTPUT
         shell: bash
       - name: Version bump with patch
+        id: npm-version-patch
         # If repository has at least one tag and version was not changed manually this commit
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         run: |
           git config user.name "$(git log -n 1 --pretty=format:%an)"
           git config user.email "$(git log -n 1 --pretty=format:%ae)"
-          npm version patch --git-tag-version false
+          echo "version=$(npm version patch --git-tag-version false)" >> $GITHUB_OUTPUT
         shell: bash
       - name: Pull version from package.json after automatic bump
         id: read-package-after
@@ -65,13 +66,13 @@ jobs:
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Package.json version bump
+          commit_message: Package.json version bump to ${{ steps.npm-version-patch.output.version }}
           commit_options: '--no-verify'
           branch: main
           file_pattern: 'package*json'
       - name: Create changelog
         run: |
-          FILE=${{ github.workspace }}-CHANGELOG.txt
+          FILE="${{ github.workspace }}-CHANGELOG.txt"
           echo "${{ steps.latest-commits.outputs.result }}" > COMMITS.txt
           cat COMMITS.txt
           export COMMITS=$(sed 's/%0A/\n/g' COMMITS.txt)
