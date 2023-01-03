@@ -93,4 +93,4 @@ jobs:
           name: "v${{ steps.read-package-after.outputs.version }}"
           tag_name: "v${{ steps.read-package-after.outputs.version }}"
           target_commitish: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
