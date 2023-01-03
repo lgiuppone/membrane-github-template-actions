@@ -41,7 +41,7 @@ jobs:
         with:
           head: ${{ env.RELEASE_BRANCH_NAME }}
           base: main
-          title: Pre-release version ${{ env.VERSION }}
+          title: Release candidate PR for version ${{ env.VERSION }}
           reviewers: ${{ github.actor }}
           body: |
             Hi @${{ github.actor }}!

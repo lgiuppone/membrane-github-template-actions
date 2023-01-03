@@ -52,13 +52,14 @@ jobs:
         shell: bash
       - name: Change tag to release candidate
         if: inputs.IS_RELEASE_CANDIDATE
-        run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
+        # run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
+        run: npm version $(jq -r .version package.json)-rc --git-tag-version false
         shell: bash
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: |
           cp package.json dist/
-          npm publish dist
+          npm publish dist --force
         env:
           NPM_TOKEN: ${{ env.PUBLISH_TOKEN }}
