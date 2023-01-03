@@ -1,0 +1,50 @@
+name: draft new release
+
+on:
+  workflow_call:
+
+env:
+  VERSION: ${{ github.event.inputs.version }}
+  RELEASE_BRANCH_NAME: release/${{ env.VERSION }}
+
+jobs:
+  draft-new-release:
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump version in package.json
+        id: npm-version
+        run: npm version ${{ env.VERSION }} --git-tag-version false
+        shell: bash
+
+      - name: Create release branch with changes in package*json
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Package.json version bumped to ${{ env.VERSION }}
+          commit_options: '--no-verify'
+          branch: ${{ env.RELEASE_BRANCH_NAME }}
+          create_branch: true
+          file_pattern: 'package*json'
+          commit_user_name: "${{ github.actor }}"
+
+      - name: Create PR release to main
+        uses: Lattice-Trade/create-pull-request@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          head: ${{ env.RELEASE_BRANCH_NAME }}
+          base: main
+          title: Pre-release version ${{ env.VERSION }}
+          reviewers: ${{ github.actor }}
+          body: |
+            Hi @${{ github.actor }}!
+
+            This PR was created to test and publish temporal release-candidate packages to NPM.
+            Merging this PR into main branch will release a GIT tag and publish a new stable package to NPM registry.

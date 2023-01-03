@@ -15,7 +15,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Pull latest commits and tags to generate a RELEASE LOG
       - name: Find last released tag
@@ -53,11 +53,8 @@ jobs:
         # If repository has at least one tag and version was not changed manually
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         run: |
-          export username=$(git log -n 1 --pretty=format:%an)
-          echo USERNAME="$username" >> $GITHUB_OUTPUT
-          echo EMAIL="$mail" >> $GITHUB_OUTPUT
-          git config user.name "$username"
-          git config user.email "$mail"
+          git config user.name "GitHub actions"
+          git config user.email "noreply@github.com"
           npm version patch --git-tag-version false
         shell: bash
       - name: Pull version from package.json after automatic bump
@@ -69,11 +66,11 @@ jobs:
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Package.json version bump to ${{ steps.read-package-after.outputs.version }}
+          commit_message: Package.json version bumped to ${{ steps.read-package-after.outputs.version }}
           commit_options: '--no-verify'
           branch: main
           file_pattern: 'package*json'
-          commit_user_name: ${{ steps.npm-version-patch.outputs.USERNAME }}
+          commit_user_name: "${{ github.event.pull_request.merged_by.login }}"
       - name: Create changelog
         run: |
           FILE="${{ github.workspace }}-CHANGELOG.txt"
@@ -96,4 +93,4 @@ jobs:
           name: "v${{ steps.read-package-after.outputs.version }}"
           tag_name: "v${{ steps.read-package-after.outputs.version }}"
           target_commitish: main
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}

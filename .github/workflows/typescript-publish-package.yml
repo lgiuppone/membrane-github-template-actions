@@ -15,6 +15,11 @@ on:
         required: false
         type: boolean
         default: false
+      IS_RELEASE_CANDIDATE:
+        description: If this a release candidate package, it will be published with an affix in NPM.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -56,6 +61,7 @@ jobs:
       NPM_REGISTRY: npm.pkg.github.com
       NPM_SCOPE: "@${{ github.repository_owner }}"
       USE_PAT: ${{ inputs.USE_PAT }}
+      IS_RELEASE_CANDIDATE: ${{ inputs.IS_RELEASE_CANDIDATE }}
       # @Lattice-Trade should be default when using npm.pkg.github.com
       # https://github.com/actions/setup-node/blob/v3/action.yml#L20
     secrets: inherit
