@@ -5,7 +5,7 @@ on:
 
 env:
   VERSION: ${{ github.event.inputs.version }}
-  RELEASE_BRANCH_NAME: release/${{ env.VERSION }}
+  RELEASE_BRANCH_NAME: "release/${{ env.VERSION }}"
 
 jobs:
   draft-new-release:
