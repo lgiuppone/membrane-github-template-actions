@@ -51,7 +51,7 @@ jobs:
           fi
         shell: bash
       - name: Change tag to release candidate
-        if: ${{ inputs.IS_RELEASE_CANDIDATE == 'true' }}
+        if: inputs.IS_RELEASE_CANDIDATE
         run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
         shell: bash
       - name: Publish to GitHub Package Registry
