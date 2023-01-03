@@ -50,7 +50,10 @@ jobs:
       - name: Version bump with patch
         # If repository has at least one tag and version was not changed manually this commit
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
-        run: npm version patch
+        run: |
+          git config user.name "$(git log -n 1 --pretty=format:%an)"
+          git config user.email "$(git log -n 1 --pretty=format:%ae)"
+          npm version patch
         shell: bash
       - name: Pull version from package.json after automatic bump
         id: read-package-after
