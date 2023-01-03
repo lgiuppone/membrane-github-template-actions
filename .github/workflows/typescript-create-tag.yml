@@ -6,38 +6,65 @@ on:
 permissions:
   contents: write
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout to develop
+      - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: develop
+          ref: main
           fetch-depth: 0
-      - name: Find last tag
+
+      # Pull latest commits and tags to generate a RELEASE LOG
+      - name: Find last released tag
+        # If this step returns empty, the repository has no tags
         id: last-tag
         run: |
           git tag | cat
           echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
         shell: bash
-      - name: Search latest commits
+      - name: Find latest commits since last tag
         id: latest-commits
-        # Fetch latest commits from develop branch, and parse it to a multiline string
         run: |
           COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline)
           COMMITS="${COMMITS//$'\n'/'%0A'}"
           echo result=$COMMITS >> $GITHUB_OUTPUT
         shell: bash
-      - name: Checkout to main
-        uses: actions/checkout@v3
-      - name: Pull version from package.json
-        id: read-package
-        run: |
-          echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
-          echo line=$(cat package.json | grep '"version":.*,') >> $GITHUB_OUTPUT
+
+      # Check that the version in package.json was not manually changed (If changed, skip automatic version bump)
+      - name: Pull version from package.json before automatic bump
+        id: read-package-before
+        # If repository has at least one tag
+        if: ${{ steps.last-tag.outputs.result != '' }}
+        run: echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
         shell: bash
+      - name: Check the version was not changed
+        id: tag-check
+        # If repository has at least one tag
+        if: ${{ steps.last-tag.outputs.result != '' }}
+        run: |
+          echo result=0 >> $GITHUB_OUTPUT
+          git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package-before.outputs.version }} || echo result=$? >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Version bump with patch
+        # If repository has at least one tag and version was not changed manually this commit
+        if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
+        run: npm version patch
+        shell: bash
+      - name: Pull version from package.json after automatic bump
+        id: read-package-after
+        run: echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Commit-push the new package.json
+        # If repository has at least one tag and version was not changed manually this commit
+        if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Package.json version bump
+          commit_options: '--no-verify'
+          branch: main
+          file_pattern: 'package*json'
       - name: Create changelog
         run: |
           FILE=${{ github.workspace }}-CHANGELOG.txt
@@ -50,14 +77,14 @@ jobs:
           $COMMITS
 
           ## Compare
-          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package.outputs.version }}
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package-after.outputs.version }}
           EOF
         shell: bash
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           body_path: ${{ github.workspace }}-CHANGELOG.txt
-          name: "v${{ steps.read-package.outputs.version }}"
-          tag_name: "v${{ steps.read-package.outputs.version }}"
+          name: "v${{ steps.read-package-after.outputs.version }}"
+          tag_name: "v${{ steps.read-package-after.outputs.version }}"
           target_commitish: main
           token: ${{ secrets.RELEASE_TOKEN }}

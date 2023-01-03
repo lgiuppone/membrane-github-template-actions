@@ -1,15 +1,9 @@
-# This entire workflow, could just be a call to typescript-pull-request.yml with variables.
-
 name: Build & Publish to Registry
 
 on:
   workflow_call:
     inputs:
       HAS_UNIT_TEST:
-        required: false
-        type: boolean
-        default: false
-      VALIDATE_GITFLOW:
         required: false
         type: boolean
         default: false
@@ -28,15 +22,7 @@ permissions:
   repository-projects: write
 
 jobs:
-  gitflow-validation:
-    if: ${{ inputs.VALIDATE_GITFLOW }}
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.yml@feature/{LM-10511}-npm-publishing
-
   install:
-    if: |
-      always() &&
-      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
-    needs: gitflow-validation
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
