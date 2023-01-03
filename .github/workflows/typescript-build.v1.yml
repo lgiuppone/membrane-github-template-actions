@@ -52,15 +52,12 @@ jobs:
         shell: bash
       - name: Change tag to release candidate
         if: inputs.IS_RELEASE_CANDIDATE
-        run: |
-          npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
-          cat ${{ github.event }}
-          echo ###################################################
-          echo ###################################################
-          echo ###################################################
-          echo ###################################################
-          echo ###################################################
-          cat ${{ github }}
+        run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
+        shell: bash
+      - name: Print event data
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
         shell: bash
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
