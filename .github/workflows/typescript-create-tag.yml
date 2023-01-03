@@ -22,6 +22,8 @@ jobs:
         # If this step returns empty, the repository has no tags
         id: last-tag
         run: |
+          echo $GITHUB_EVENT_PATH
+          cat $GITHUB_EVENT_PATH
           git tag | cat
           echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
         shell: bash
