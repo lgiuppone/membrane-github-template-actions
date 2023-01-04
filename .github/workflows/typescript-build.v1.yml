@@ -43,21 +43,16 @@ jobs:
       - name: Build code
         run: npm run build
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
-        run: |
-          if [ ${{ inputs.USE_PAT }} = true ];then
-            echo PUBLISH_TOKEN=${{ secrets.NPM_TOKEN_PUBLISH }} >> $GITHUB_ENV;
-          else
-            echo PUBLISH_TOKEN=${{ secrets.GITHUB_TOKEN }} >> $GITHUB_ENV;
-          fi
-        shell: bash
+        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
+        id: token
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token@feature/{LM-10511}-npm-publishing
+        with:
+          USE_PAT: ${{ inputs.USE_PAT }}
+          NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Change tag to release candidate
-        if: inputs.IS_RELEASE_CANDIDATE
+        if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
-        shell: bash
-      - name: Print event data
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
         shell: bash
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
@@ -67,4 +62,4 @@ jobs:
           cp README.md dist/ || true
           npm publish dist
         env:
-          NPM_TOKEN: ${{ env.PUBLISH_TOKEN }}
+          NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}

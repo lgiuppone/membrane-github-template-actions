@@ -2,6 +2,12 @@ name: '📦 Delete release candidate packages'
 
 on: 
   workflow_call:
+    inputs:
+      USE_PAT:
+        description: For old repos that used Personal Access tokens they should pass a TRUE. New repos will use $GITHUB_TOKEN.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -19,6 +25,13 @@ jobs:
           echo PACKAGE_NAME=$(jq -r .name package.json | cut -d'/' -f2) >> $GITHUB_ENV
           echo PACKAGE_VERSION=$(jq -r .version package.json) >> $GITHUB_ENV
         shell: bash
+      - name: Set the right publish token (PAT or GITHUB_TOKEN)
+        id: token
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token@feature/{LM-10511}-npm-publishing
+        with:
+          USE_PAT: ${{ inputs.USE_PAT }}
+          NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete release candidate packages after publishing stable release
         uses: actions/github-script@v6
         env:
@@ -26,7 +39,7 @@ jobs:
           package_type: npm
           package_version: ${{ env.PACKAGE_VERSION }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.token.outputs.PUBLISH_TOKEN }}
           script: |
             const { owner } = context.repo;
             const { package_name, package_type, package_version } = process.env;
