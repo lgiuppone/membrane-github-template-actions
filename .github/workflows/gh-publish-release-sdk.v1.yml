@@ -64,7 +64,7 @@ jobs:
       - name: Push the new package.json
         # If repository has at least one tag and version was not changed manually
         if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: Lattice-Trade/git-auto-commit-action@v1
         with:
           commit_message: Package.json version bumped to ${{ steps.read-package-after.outputs.version }}
           commit_options: '--no-verify'
@@ -87,7 +87,7 @@ jobs:
           EOF
         shell: bash
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: Lattice-Trade/action-gh-release@v1
         with:
           body_path: ${{ github.workspace }}-CHANGELOG.txt
           name: "v${{ steps.read-package-after.outputs.version }}"

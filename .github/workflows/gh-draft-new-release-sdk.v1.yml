@@ -25,7 +25,7 @@ jobs:
         shell: bash
 
       - name: Create release branch with changes in package*json
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: Lattice-Trade/git-auto-commit-action@v1
         with:
           commit_message: Package.json version bumped to ${{ env.VERSION }}
           commit_options: '--no-verify'
