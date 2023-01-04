@@ -64,6 +64,7 @@ jobs:
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: |
           cp package.json dist/
+          cp README.md dist/ || true
           npm publish dist
         env:
           NPM_TOKEN: ${{ env.PUBLISH_TOKEN }}
