@@ -27,7 +27,7 @@ jobs:
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download and unzip dependencies artifact
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@main
       - name: Run lint
         continue-on-error: true
         run: npm run lint
