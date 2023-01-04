@@ -33,7 +33,7 @@ jobs:
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download and unzip dependencies artifact
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@main
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@feature/{LM-10511}-npm-publishing
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST
         run: npm test
