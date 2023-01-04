@@ -1,0 +1,49 @@
+name: '📦 Delete release candidate packages'
+
+on: 
+  workflow_call:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  delete-rc:
+    name: Deleting rc packages
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Fetch package metadata from package.json
+        run: |
+          echo PACKAGE_NAME=$(jq -r .name package.json | cut -d'/' -f2) >> $GITHUB_ENV
+          echo PACKAGE_VERSION=$(jq -r .version package.json) >> $GITHUB_ENV
+        shell: bash
+      - name: Delete release candidate packages after publishing stable release
+        uses: actions/github-script@v6
+        env:
+          package_name: ${{ env.PACKAGE_NAME }}
+          package_type: npm
+          package_version: ${{ env.PACKAGE_VERSION }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner } = context.repo;
+            const { package_name, package_type, package_version } = process.env;
+
+            const packages = await github.rest.packages.getAllPackageVersionsForAPackageOwnedByAnOrg({
+              package_type,
+              package_name,
+              org: owner,
+            });
+            packages.data.forEach(package => {
+              if (package.name.includes(`${package_version}-rc`)) {
+                console.log(`Deleting package: ${package.name}`)
+                github.rest.packages.deletePackageVersionForOrg({
+                  package_type,
+                  package_name,
+                  org: owner,
+                  package_version_id: package.id,
+                });
+              }
+            })
