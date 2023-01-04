@@ -1,0 +1,13 @@
+name: 'Upload artifact'
+description: 'Zips and uploads dependencies artifact'
+runs:
+  using: "composite"
+  steps:
+    - name: Zip artifact of dependencies
+      run: tar -czf node_modules.tgz node_modules
+      shell: bash
+    - name: Upload artifact of dependencies
+      uses: actions/upload-artifact@v3
+      with:
+        name: node_modules.tgz
+        path: node_modules.tgz

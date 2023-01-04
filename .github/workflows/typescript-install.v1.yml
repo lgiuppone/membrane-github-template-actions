@@ -29,11 +29,5 @@ jobs:
       - name: Install dependencies (npm ci)
         run: npm ci --ignore-scripts
         shell: bash
-      - name: Zip artifact of dependencies
-        run: tar -czf node_modules.tgz node_modules
-        shell: bash
-      - name: Upload artifact of dependencies
-        uses: actions/upload-artifact@v2
-        with:
-          name: node_modules.tgz
-          path: node_modules.tgz
+      - name: Zip and upload dependencies artifact
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/upload-artifact.v1@feature/{LM-10511}-npm-publishing
