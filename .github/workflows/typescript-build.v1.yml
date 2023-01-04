@@ -33,19 +33,19 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@feature/{LM-10511}-npm-publishing
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
           NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
           NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
       - name: Download and unzip dependencies artficat
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@feature/{LM-10511}-npm-publishing
       - name: Build code
         run: npm run build
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         id: token
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token.v1@feature/{LM-10511}-npm-publishing
         with:
           USE_PAT: ${{ inputs.USE_PAT }}
           NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}

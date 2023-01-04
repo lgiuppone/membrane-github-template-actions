@@ -27,7 +27,7 @@ jobs:
         shell: bash
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
         id: token
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token.v1@feature/{LM-10511}-npm-publishing
         with:
           USE_PAT: ${{ inputs.USE_PAT }}
           NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}

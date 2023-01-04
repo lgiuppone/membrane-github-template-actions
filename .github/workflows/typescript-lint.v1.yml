@@ -23,11 +23,11 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@feature/{LM-10511}-npm-publishing
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download and unzip dependencies artficat
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@feature/{LM-10511}-npm-publishing
       - name: Run lint
         continue-on-error: true
         run: npm run lint
