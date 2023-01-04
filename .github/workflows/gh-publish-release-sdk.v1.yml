@@ -15,7 +15,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GH_PAT_TOKEN }}
 
       # Pull latest commits and tags to generate a RELEASE LOG
       - name: Find last released tag
@@ -93,4 +93,4 @@ jobs:
           name: "v${{ steps.read-package-after.outputs.version }}"
           tag_name: "v${{ steps.read-package-after.outputs.version }}"
           target_commitish: main
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.GH_PAT_TOKEN }}
