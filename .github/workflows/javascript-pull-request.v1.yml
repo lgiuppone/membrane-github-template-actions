@@ -18,9 +18,6 @@ jobs:
   gitflow-validation:
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.v1.yml@main
     if: ${{ inputs.VALIDATE_GITFLOW }}
-    with:
-      GH_BASE_REF: ${{ github.base_ref }}
-      GH_HEAD_REF: ${{ github.head_ref }}
 
   install:
     needs: gitflow-validation
