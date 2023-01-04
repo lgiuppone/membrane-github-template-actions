@@ -38,7 +38,7 @@ jobs:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
           NPM_REGISTRY: ${{ inputs.NPM_REGISTRY }}
           NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
-      - name: Download and unzip dependencies artficat
+      - name: Download and unzip dependencies artifact
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@feature/{LM-10511}-npm-publishing
       - name: Build code
         run: npm run build

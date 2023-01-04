@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   install:
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.yml@feature/{LM-10511}-npm-publishing
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.v1.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
     secrets: inherit
@@ -36,7 +36,7 @@ jobs:
   lint:
     needs: install
     if: always() && needs.install.result == 'success'
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.yml@feature/{LM-10511}-npm-publishing
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-lint.v1.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
     secrets: inherit
@@ -44,7 +44,7 @@ jobs:
   test:
     needs: install
     if: always() && needs.install.result == 'success'
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.yml@feature/{LM-10511}-npm-publishing
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-test.v1.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       HAS_UNIT_TEST: ${{ inputs.HAS_UNIT_TEST }}
@@ -55,7 +55,7 @@ jobs:
     if: |
       always() &&
       (needs.lint.result == 'success' && needs.test.result == 'success')
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.yml@feature/{LM-10511}-npm-publishing
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@feature/{LM-10511}-npm-publishing
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       NPM_REGISTRY: npm.pkg.github.com
