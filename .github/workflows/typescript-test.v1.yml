@@ -26,10 +26,10 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Check if codebase tests are difined within package.json
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/check-tests@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/check-tests.v1@feature/{LM-10511}-npm-publishing
         id: check-tests
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@feature/{LM-10511}-npm-publishing
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Download and unzip dependencies artifact
