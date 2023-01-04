@@ -23,11 +23,11 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Setup node
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@main
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Install dependencies (npm ci)
         run: npm ci --ignore-scripts
         shell: bash
       - name: Zip and upload dependencies artifact
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/upload-artifact.v1@feature/{LM-10511}-npm-publishing
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/upload-artifact.v1@main
