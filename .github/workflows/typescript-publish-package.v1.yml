@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Publish to Registry
 
 on:
   workflow_call:
@@ -7,30 +7,27 @@ on:
         required: false
         type: boolean
         default: false
-      GH_BASE_REF:
-        required: false
-        type: string
-      GH_HEAD_REF:
-        required: false
-        type: string
-      VALIDATE_GITFLOW:
-        required: false
-        type: boolean
-        default: false
       NODE_VERSION:
         required: true
         type: string
+      USE_PAT:
+        description: For repos that already published using Personal Access tokens, they should input a true. New repos will use $GITHUB_TOKEN.
+        required: false
+        type: boolean
+        default: false
+      IS_RELEASE_CANDIDATE:
+        description: If this a release candidate package, it will be published with an affix in NPM.
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+  repository-projects: write
 
 jobs:
-  gitflow-validation:
-    if: ${{ inputs.VALIDATE_GITFLOW || ( inputs.GH_BASE_REF != '' && inputs.GH_HEAD_REF != '' ) }}
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.v1.yml@main
-
   install:
-    needs: gitflow-validation
-    if: |
-      always() &&
-      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-install.v1.yml@main
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
@@ -61,4 +58,10 @@ jobs:
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@main
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      NPM_REGISTRY: npm.pkg.github.com
+      NPM_SCOPE: "@${{ github.repository_owner }}"
+      USE_PAT: ${{ inputs.USE_PAT }}
+      IS_RELEASE_CANDIDATE: ${{ inputs.IS_RELEASE_CANDIDATE }}
+      # @Lattice-Trade should be default when using npm.pkg.github.com
+      # https://github.com/actions/setup-node/blob/v3/action.yml#L20
     secrets: inherit

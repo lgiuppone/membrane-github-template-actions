@@ -2,37 +2,33 @@ name: '📦 Validate gitflow'
 
 on: 
   workflow_call:
-    inputs:
-      GH_BASE_REF:
-        required: true
-        type: string
-      GH_HEAD_REF:
-        required: true
-        type: string
 
 jobs:
   gitflow-validation:
     runs-on: ubuntu-latest
+    env:
+      GH_BASE_REF: ${{ github.base_ref }}
+      GH_HEAD_REF: ${{ github.head_ref }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Validate PR origin branch to develop
-        if: ${{ inputs.GH_BASE_REF == 'develop' && (!startsWith(inputs.GH_HEAD_REF, 'feature/') && !startsWith(inputs.GH_HEAD_REF, 'enhancement/') && !startsWith(inputs.GH_HEAD_REF, 'refactor/') && !startsWith(inputs.GH_HEAD_REF, 'fix/') && !startsWith(inputs.GH_HEAD_REF, 'migration/') && !startsWith(inputs.GH_HEAD_REF, 'release/') && !startsWith(inputs.GH_HEAD_REF, 'rc-feature/') && !startsWith(inputs.GH_HEAD_REF, 'backport/')) }}
+        if: ${{ env.GH_BASE_REF == 'develop' && (!startsWith(env.GH_HEAD_REF, 'feature/') && !startsWith(env.GH_HEAD_REF, 'enhancement/') && !startsWith(env.GH_HEAD_REF, 'refactor/') && !startsWith(env.GH_HEAD_REF, 'fix/') && !startsWith(env.GH_HEAD_REF, 'migration/') && !startsWith(env.GH_HEAD_REF, 'release/') && !startsWith(env.GH_HEAD_REF, 'rc-feature/') && !startsWith(env.GH_HEAD_REF, 'backport/')) }}
         uses: actions/github-script@v3
         with:
           script: |
               core.setFailed('origin branch from where the pull request is made is not known. Make sure to make a pull request from a known source branch, such as: feature/*, refactor/*, fix/*, migration/*, release/*, rc-feature/*, backport/*. For more details check the following documentation https://latticetrade.atlassian.net/l/cp/PUaek51t')
       
       - name: Validate origin branch to staging
-        if: ${{ inputs.GH_BASE_REF == 'staging' && (!startsWith(inputs.GH_HEAD_REF, 'develop') && !startsWith(inputs.GH_HEAD_REF, 'hotfix/') && !startsWith(inputs.GH_HEAD_REF, 'main') && !startsWith(inputs.GH_HEAD_REF, 'release/') && !startsWith(inputs.GH_HEAD_REF, 'backport/')) }}
+        if: ${{ env.GH_BASE_REF == 'staging' && (!startsWith(env.GH_HEAD_REF, 'develop') && !startsWith(env.GH_HEAD_REF, 'hotfix/') && !startsWith(env.GH_HEAD_REF, 'main') && !startsWith(env.GH_HEAD_REF, 'release/') && !startsWith(env.GH_HEAD_REF, 'backport/')) }}
         uses: actions/github-script@v3
         with:
           script: |
               core.setFailed('origin branch from where the pull request is made is not known. Make sure to make a pull request from a known source branch, such as: develop, hotfix/*, main, release/*, backport/*. For more details check the following documentation https://latticetrade.atlassian.net/l/cp/PUaek51t')
       
       - name: Validate origin branch to main
-        if: ${{ inputs.GH_BASE_REF == 'main' && (!startsWith(inputs.GH_HEAD_REF, 'staging') && !startsWith(inputs.GH_HEAD_REF, 'hotfix/')) }}
+        if: ${{ env.GH_BASE_REF == 'main' && (!startsWith(env.GH_HEAD_REF, 'staging') && !startsWith(env.GH_HEAD_REF, 'hotfix/')) }}
         uses: actions/github-script@v3
         with:
           script: |

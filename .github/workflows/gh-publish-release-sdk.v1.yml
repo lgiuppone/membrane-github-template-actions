@@ -1,0 +1,96 @@
+name: '📦 Create tag reading package.json'
+
+on: 
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT_TOKEN }}
+
+      # Pull latest commits and tags to generate a RELEASE LOG
+      - name: Find last released tag
+        # If this step returns empty, the repository has no tags
+        id: last-tag
+        run: |
+          git tag | cat
+          echo result=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' --count=1 refs/tags) >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Find latest commits since last tag
+        id: latest-commits
+        run: |
+          COMMITS=$(git log ${{ steps.last-tag.outputs.result }}..HEAD --oneline | sed 's/"//g' | grep -vi 'Package.json version bump to' || true)
+          COMMITS="${COMMITS//$'\n'/'%0A'}"
+          echo result=$COMMITS >> $GITHUB_OUTPUT
+        shell: bash
+
+      # Check that the version in package.json was not manually changed (If changed, skip automatic version bump)
+      - name: Pull version from package.json before automatic bump
+        id: read-package-before
+        # If repository has at least one tag
+        if: ${{ steps.last-tag.outputs.result != '' }}
+        run: echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Check the version was not changed
+        id: tag-check
+        # If repository has at least one tag
+        if: ${{ steps.last-tag.outputs.result != '' }}
+        run: |
+          echo result=0 >> $GITHUB_OUTPUT
+          git show-ref --tags --verify --quiet -- refs/tags/v${{ steps.read-package-before.outputs.version }} || echo result=$? >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Version bump with patch
+        id: npm-version-patch
+        # If repository has at least one tag and version was not changed manually
+        if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
+        run: |
+          git config user.name "GitHub actions"
+          git config user.email "noreply@github.com"
+          npm version patch --git-tag-version false
+        shell: bash
+      - name: Pull version from package.json after automatic bump
+        id: read-package-after
+        run: echo version=$(jq -r .version package.json) >> $GITHUB_OUTPUT
+        shell: bash
+      - name: Push the new package.json
+        # If repository has at least one tag and version was not changed manually
+        if: ${{ steps.last-tag.outputs.result != '' && steps.tag-check.outputs.result == 0 }}
+        uses: Lattice-Trade/git-auto-commit-action@v1
+        with:
+          commit_message: Package.json version bumped to ${{ steps.read-package-after.outputs.version }}
+          commit_options: '--no-verify'
+          branch: main
+          file_pattern: 'package*json'
+          commit_user_name: "${{ github.event.pull_request.merged_by.login }}"
+      - name: Create changelog
+        run: |
+          FILE="${{ github.workspace }}-CHANGELOG.txt"
+          echo "${{ steps.latest-commits.outputs.result }}" > COMMITS.txt
+          cat COMMITS.txt
+          export COMMITS=$(sed 's/%0A/\n/g' COMMITS.txt)
+
+          cat <<EOF >$FILE
+          ## Changes
+          $COMMITS
+
+          ## Compare
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/${{ steps.last-tag.outputs.result }}...v${{ steps.read-package-after.outputs.version }}
+          EOF
+        shell: bash
+      - name: Release
+        uses: Lattice-Trade/action-gh-release@v1
+        with:
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
+          name: "v${{ steps.read-package-after.outputs.version }}"
+          tag_name: "v${{ steps.read-package-after.outputs.version }}"
+          target_commitish: main
+          token: ${{ secrets.GH_PAT_TOKEN }}

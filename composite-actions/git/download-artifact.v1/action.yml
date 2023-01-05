@@ -1,0 +1,13 @@
+name: 'Download artifact'
+description: 'Downloads and unzips dependencies artifact created at install job'
+runs:
+  using: "composite"
+  steps:
+    - name: Download artifact of dependencies
+      uses: actions/download-artifact@v3
+      with:
+        name: node_modules.tgz
+        path: .
+    - name: Unzip artifact of dependencies
+      run: tar -xzf node_modules.tgz
+      shell: bash

@@ -1,0 +1,28 @@
+name: 'Set the right PUBLISH token'
+description: 'In old SDK repos, we need to use a PAT, in new ones we can use GITHUB_TOKEN'
+inputs:
+  USE_PAT:
+    description: "A string valued as true or false"
+    required: true
+  NPM_TOKEN_PUBLISH:
+    description: "A string valued as true or false"
+    required: true
+  GITHUB_TOKEN:
+    description: "A string valued as true or false"
+    required: true
+outputs:
+  PUBLISH_TOKEN:
+    description: "A string valued as true or false"
+    value: ${{ steps.token.outputs.PUBLISH_TOKEN }}
+runs:
+  using: "composite"
+  steps:
+    - name: Set the right publish token (PAT or GITHUB_TOKEN)
+      id: token
+      run: |
+        if [ ${{ inputs.USE_PAT }} = true ];then
+          echo PUBLISH_TOKEN=${{ inputs.NPM_TOKEN_PUBLISH }} >> $GITHUB_OUTPUT;
+        else
+          echo PUBLISH_TOKEN=${{ inputs.GITHUB_TOKEN }} >> $GITHUB_OUTPUT;
+        fi
+      shell: bash

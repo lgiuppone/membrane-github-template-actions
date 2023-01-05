@@ -23,8 +23,9 @@ on:
         required: true
         type: string
       NODE_VERSION:
-        required: true
+        required: false
         type: string
+        default: 16
       SLACK_CHANNEL:
         required: true
         type: string

@@ -9,12 +9,21 @@ on:
       HAS_UNIT_TEST:
         required: true
         type: boolean
+      NPM_REGISTRY:
+        description: "Hostname of NPM registry to setup"
+        required: false
+        type: string
+        default: registry.npmjs.org
+      NPM_SCOPE:
+        description: "Account owner to use as GitHub Packages scope"
+        type: string
+        required: false
 
 jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
     steps:
       - name: Check if codebase tests are difined within package.json
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/check-tests.v1@main
@@ -23,14 +32,8 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/setup-node.v1@main
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
-      - name: Download artifact of dependencies
-        uses: actions/download-artifact@v3
-        with:
-          name: node_modules.tgz
-          path: .
-      - name: Unzip artifact of dependencies
-        run: tar -xzf node_modules.tgz
-        shell: bash
+      - name: Download and unzip dependencies artifact
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@main
       - name: Run unit tests
         if: inputs.HAS_UNIT_TEST
         run: npm test
