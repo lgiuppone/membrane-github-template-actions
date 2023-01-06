@@ -1,0 +1,56 @@
+name: 'Delete old workflows'
+description: 'Deletes old workflows based on given parameters'
+inputs:
+  KEEP_MINIMUM_RUNS:
+    description: "Minimum ammount of action runs to keep even if patterns match"
+    required: false
+    default: 6
+  RETAIN_DAYS:
+    description: "How many days should be excluded from clean up job."
+    required: false
+    default: 30
+  DELETE_BY_STATE:
+    description: "A string or a list of strings with workflows states to aim for clean up"
+    required: false
+    default: "All"
+    # options:
+    #       - "All"
+    #       - active
+    #       - deleted
+    #       - disabled_inactivity
+    #       - disabled_manually
+  DELETE_BY_CONCLUSION:
+    description: "A string or a list of strings with workflows conclusions to aim for clean up"
+    required: false
+    default: "All"
+    # options:
+    #       - "All"
+    #       - action_required
+    #       - cancelled
+    #       - failure
+    #       - skipped
+    #       - success
+  DELETE_BY_WORKFLOW_NAME:
+    description: "A string with the name of the workflow or its filenames. If empty, all workflows are cleaned up."
+    required: false
+    default: ""
+  DRY_RUN:
+    description: "A string valued as true or false"
+    required: false
+    default: false
+  # options:
+    #       - true
+    #       - false
+runs:
+  using: "composite"
+  steps:
+    - name: Delete workflow runs
+      uses: Lattice-Trade/delete-workflow-runs@v1
+      with:
+        token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        retain_days: ${{ inputs.RETAIN_DAYS }}
+        keep_minimum_runs: ${{ inputs.KEEP_MINIMUM_RUNS }}
+        delete_workflow_by_state_pattern: ${{ inputs.DELETE_BY_STATE }}
+        delete_run_by_conclusion_pattern: ${{ inputs.DELETE_BY_CONCLUSION }}
+        dry_run: ${{ inputs.DRY_RUN }}
