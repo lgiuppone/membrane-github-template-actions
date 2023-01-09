@@ -39,8 +39,8 @@ runs:
       uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token.v1@main
       with:
         USE_PAT: ${{ inputs.USE_PAT }}
-        NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN_PUBLISH: ${{ env.NPM_TOKEN_PUBLISH }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
     - name: Change tag to release candidate
       if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
       run: yarn version --new-version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version

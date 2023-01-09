@@ -24,6 +24,7 @@ on:
 env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
   NODE_VERSION: ${{ inputs.NODE_VERSION }}
+  NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
 
 jobs:
   gitflow-validation:
