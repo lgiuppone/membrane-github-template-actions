@@ -4,9 +4,6 @@ inputs:
   NODE_VERSION:
     description: "Node version to be set up"
     required: true
-  HAS_UNIT_TEST:
-    description: "If the code needs to run tests"
-    required: true
 runs:
   using: "composite"
   steps:
