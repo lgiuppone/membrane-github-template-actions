@@ -14,11 +14,11 @@ inputs:
   USE_PAT:
     description: For old repos that used Personal Access tokens they should pass a TRUE. New repos will use $GITHUB_TOKEN.
     required: false
-    default: false
+    default: "false"
   IS_RELEASE_CANDIDATE:
     description: If this a release candidate package, it will be published with an affix in NPM.
     required: false
-    default: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -42,7 +42,7 @@ runs:
         NPM_TOKEN_PUBLISH: ${{ env.NPM_TOKEN_PUBLISH }}
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
     - name: Change tag to release candidate
-      if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
+      if: ${{ inputs.IS_RELEASE_CANDIDATE == 'true' && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
       run: yarn version --new-version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
       shell: bash
     - name: Publish to GitHub Package Registry
