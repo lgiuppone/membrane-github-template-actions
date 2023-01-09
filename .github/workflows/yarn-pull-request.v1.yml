@@ -75,3 +75,4 @@ jobs:
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
           NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

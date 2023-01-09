@@ -20,8 +20,11 @@ inputs:
     required: false
     default: false
   NPM_TOKEN_PUBLISH:
-    required: true
+    required: false
     description: Value of a publish token if available. New repositories don't need it.
+  GITHUB_TOKEN:
+    required: false
+    description: Value of a secrets.GITHUB_TOKEN
 runs:
   using: "composite"
   steps:
@@ -43,7 +46,7 @@ runs:
       with:
         USE_PAT: ${{ inputs.USE_PAT }}
         NPM_TOKEN_PUBLISH: ${{ inputs.NPM_TOKEN_PUBLISH }}
-        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
     - name: Change tag to release candidate
       if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
       run: yarn version --new-version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
