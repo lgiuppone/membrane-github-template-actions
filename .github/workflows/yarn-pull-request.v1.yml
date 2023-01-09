@@ -24,7 +24,6 @@ on:
 env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
   NODE_VERSION: ${{ inputs.NODE_VERSION }}
-  NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
 
 jobs:
   gitflow-validation:
@@ -70,6 +69,8 @@ jobs:
       always() &&
       (needs.lint.result == 'success' && needs.test.result == 'success')
     runs-on: ubuntu-22.04
+    env:
+      NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
     steps:
       - name: Build application
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@feature/LM-11996-yarn-actions
