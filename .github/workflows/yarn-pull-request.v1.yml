@@ -73,5 +73,3 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@feature/LM-11996-yarn-actions
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
-          NPM_TOKEN_PUBLISH: ${{ secrets.NPM_TOKEN_PUBLISH }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
