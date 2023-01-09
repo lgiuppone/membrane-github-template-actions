@@ -1,0 +1,76 @@
+name: Build & Test
+
+on:
+  workflow_call:
+    inputs:
+      HAS_UNIT_TEST:
+        required: false
+        type: boolean
+        default: false
+      GH_BASE_REF:
+        required: false
+        type: string
+      GH_HEAD_REF:
+        required: false
+        type: string
+      VALIDATE_GITFLOW:
+        required: false
+        type: boolean
+        default: false
+      NODE_VERSION:
+        required: true
+        type: string
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN_RO }}
+  NODE_VERSION: ${{ inputs.NODE_VERSION }}
+
+jobs:
+  gitflow-validation:
+    if: ${{ inputs.VALIDATE_GITFLOW || ( inputs.GH_BASE_REF != '' && inputs.GH_HEAD_REF != '' ) }}
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/gh-validate-gitflow.v1.yml@main
+
+  install:
+    needs: gitflow-validation
+    if: |
+      always() &&
+      (needs.gitflow-validation.result == 'success' || needs.gitflow-validation.result == 'skipped')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/install.v1@main
+        with:
+          NODE_VERSION: ${{ env.NODE_VERSION }}
+
+  lint:
+    needs: install
+    if: always() && needs.install.result == 'success'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@main
+        with:
+          NODE_VERSION: ${{ env.NODE_VERSION }}
+
+  test:
+    needs: install
+    if: always() && needs.install.result == 'success' && inputs.HAS_UNIT_TEST
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@main
+        with:
+          NODE_VERSION: ${{ env.NODE_VERSION }}
+
+  build:
+    needs: [test, lint]
+    if: |
+      always() &&
+      needs.lint.result == 'success' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Build application
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@main
+        with:
+          NODE_VERSION: ${{ env.NODE_VERSION }}

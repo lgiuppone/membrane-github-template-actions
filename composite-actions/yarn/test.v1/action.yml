@@ -1,0 +1,19 @@
+name: 'Run test scripts'
+description: 'Test the code'
+inputs:
+  NODE_VERSION:
+    description: "Node version to be set up"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Setup node
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/setup-node.v1@main
+      with:
+        NODE_VERSION: ${{ inputs.NODE_VERSION }}
+    - name: Download and unzip dependencies artifact
+      uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@main
+    - name: Run tests
+      continue-on-error: true
+      run: yarn run test
+      shell: bash
