@@ -65,7 +65,8 @@ jobs:
     needs: [test, lint]
     if: |
       always() &&
-      (needs.lint.result == 'success' && needs.test.result == 'success')
+      needs.lint.result == 'success' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-22.04
     steps:
       - name: Build application
