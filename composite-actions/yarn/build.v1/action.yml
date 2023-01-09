@@ -19,6 +19,9 @@ inputs:
     description: If this a release candidate package, it will be published with an affix in NPM.
     required: false
     default: false
+  NPM_TOKEN_PUBLISH:
+    required: true
+    description: Value of a publish token if available. New repositories don't need it.
 runs:
   using: "composite"
   steps:
@@ -39,7 +42,7 @@ runs:
       uses: Lattice-Trade/membrane-github-template-actions/composite-actions/npm/set-publish-token.v1@main
       with:
         USE_PAT: ${{ inputs.USE_PAT }}
-        NPM_TOKEN_PUBLISH: ${{ env.NPM_TOKEN_PUBLISH }}
+        NPM_TOKEN_PUBLISH: ${{ inputs.NPM_TOKEN_PUBLISH }}
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
     - name: Change tag to release candidate
       if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
