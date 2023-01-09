@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/install.v1@feature/LM-11996-yarn-actions
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/install.v1@main
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@feature/LM-11996-yarn-actions
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@main
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
 
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@feature/LM-11996-yarn-actions
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/lint.v1@main
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
 
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Build application
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@feature/LM-11996-yarn-actions
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@main
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
           NPM_REGISTRY: npm.pkg.github.com
