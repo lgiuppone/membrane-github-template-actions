@@ -22,5 +22,5 @@ runs:
         node-version: ${{ inputs.NODE_VERSION }}
         registry-url: https://${{ inputs.NPM_REGISTRY }}/
         cache: yarn
-        cache-dependency-path: yarn-lock.json
+        cache-dependency-path: yarn.lock
         scope: ${{ inputs.NPM_SCOPE }}
