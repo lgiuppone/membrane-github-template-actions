@@ -60,14 +60,6 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/protoc/install.v1@main
         with:
           PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
-      - name: Build protoc and get output
-        id: protoc-build
-        if: ${{ inputs.USE_PROTOC && github.event_name == 'pull_request' }}
-        run: |
-          BUILD=$(npm run build:proto)
-          BUILD="${BUILD//$'\n'/'%0A'}"
-          echo result=$BUILD >> $GITHUB_OUTPUT
-        shell: bash
       - name: Build code
         if: ${{ !inputs.USE_JS }}
         run: npm run build
