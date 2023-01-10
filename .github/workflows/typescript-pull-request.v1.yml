@@ -20,6 +20,15 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      USE_PROTOC:
+        required: false
+        type: boolean
+        default: false
+      PROTOC_VERSION:
+        description: Protoc version to download from GitHub
+        required: false
+        type: string
+        default: 21.12
 
 jobs:
   gitflow-validation:
@@ -61,4 +70,6 @@ jobs:
     uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@main
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      USE_PROTOC: ${{ inputs.USE_PROTOC }}
+      PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
     secrets: inherit

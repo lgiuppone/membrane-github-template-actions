@@ -25,6 +25,16 @@ on:
         required: false
         type: boolean
         default: false
+      USE_PROTOC:
+        description: If this projects uses protobuff/protoc.
+        required: false
+        type: boolean
+        default: false
+      PROTOC_VERSION:
+        description: Protoc version to download from GitHub
+        required: false
+        type: string
+        default: 21.12
 
 jobs:
   build:
@@ -40,6 +50,11 @@ jobs:
           NPM_SCOPE: ${{ inputs.NPM_SCOPE }}
       - name: Download and unzip dependencies artifact
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/download-artifact.v1@main
+      - name: Install protoc
+        if: ${{ inputs.USE_PROTOC }}
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/protoc/install.v1@main
+        with:
+          PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
       - name: Build code
         run: npm run build
       - name: Set the right publish token (PAT or GITHUB_TOKEN)

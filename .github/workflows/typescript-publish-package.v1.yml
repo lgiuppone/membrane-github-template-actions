@@ -20,6 +20,15 @@ on:
         required: false
         type: boolean
         default: false
+      USE_PROTOC:
+        required: false
+        type: boolean
+        default: false
+      PROTOC_VERSION:
+        description: Protoc version to download from GitHub
+        required: false
+        type: string
+        default: 21.12
 
 permissions:
   contents: write
@@ -62,6 +71,8 @@ jobs:
       NPM_SCOPE: "@${{ github.repository_owner }}"
       USE_PAT: ${{ inputs.USE_PAT }}
       IS_RELEASE_CANDIDATE: ${{ inputs.IS_RELEASE_CANDIDATE }}
+      USE_PROTOC: ${{ inputs.USE_PROTOC }}
+      PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
       # @Lattice-Trade should be default when using npm.pkg.github.com
       # https://github.com/actions/setup-node/blob/v3/action.yml#L20
     secrets: inherit
