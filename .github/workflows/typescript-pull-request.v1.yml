@@ -24,6 +24,13 @@ on:
         required: false
         type: boolean
         default: false
+      PROTOC_VERSION:
+        required: false
+        type: string
+        default: 21.12
+
+env:
+  PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
 
 jobs:
   gitflow-validation:
