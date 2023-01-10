@@ -69,6 +69,7 @@ jobs:
           echo result=$BUILD >> $GITHUB_OUTPUT
         shell: bash
       - name: Build code
+        if: ${{ !inputs.USE_JS }}
         run: npm run build
         shell: bash
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
@@ -85,7 +86,7 @@ jobs:
         shell: bash
       - name: Publish to GitHub Package Registry
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
-        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
+        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' && !inputs.USE_JS }}
         run: |
           cp package.json dist/
           cp README.md dist/ || true
