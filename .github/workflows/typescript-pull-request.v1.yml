@@ -29,9 +29,6 @@ on:
         type: string
         default: 21.12
 
-env:
-  PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
-
 jobs:
   gitflow-validation:
     if: ${{ inputs.VALIDATE_GITFLOW || ( inputs.GH_BASE_REF != '' && inputs.GH_HEAD_REF != '' ) }}
