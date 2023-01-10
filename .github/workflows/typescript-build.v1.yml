@@ -64,8 +64,7 @@ jobs:
         if: ${{ inputs.USE_PROTOC && github.event_name == 'pull_request' }}
         run: |
           npm run build:proto > pr-message.txt 2>&1
-          sed -i '/> Proto models created/ s/$/**/' pr-message.txt
-          sed -i '/> Proto models created/ s/^> /###### **/' pr-message.txt
+          sed -i '/> Proto models created/ s/^>/####/' pr-message.txt
         shell: bash
       - name: Comment PR with proto build output
         uses: Lattice-Trade/actions-comment-pull-request@v1
