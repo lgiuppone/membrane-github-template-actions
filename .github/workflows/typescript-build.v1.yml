@@ -25,6 +25,11 @@ on:
         required: false
         type: boolean
         default: false
+      USE_JS:
+        description: If the project uses JS or TS, the publish command changes.
+        required: false
+        type: boolean
+        default: false
       USE_PROTOC:
         description: If this projects uses protobuff/protoc.
         required: false
@@ -55,8 +60,17 @@ jobs:
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/protoc/install.v1@main
         with:
           PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
+      - name: Build protoc and get output
+        id: protoc-build
+        if: ${{ inputs.USE_PROTOC && github.event_name == 'pull_request' }}
+        run: |
+          BUILD=$(npm run build:proto)
+          BUILD="${BUILD//$'\n'/'%0A'}"
+          echo result=$BUILD >> $GITHUB_OUTPUT
+        shell: bash
       - name: Build code
         run: npm run build
+        shell: bash
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         id: token
@@ -76,5 +90,12 @@ jobs:
           cp package.json dist/
           cp README.md dist/ || true
           npm publish dist
+        env:
+          NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}
+      - name: Publish to GitHub Package Registry if JAVASCRIPT
+        # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
+        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' && inputs.USE_JS }}
+        run: |
+          npm publish
         env:
           NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}
