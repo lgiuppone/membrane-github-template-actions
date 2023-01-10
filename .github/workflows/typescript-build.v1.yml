@@ -76,19 +76,16 @@ jobs:
         if: ${{ inputs.IS_RELEASE_CANDIDATE && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: npm version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --git-tag-version false
         shell: bash
-      - name: Publish to GitHub Package Registry
+      - name: Publish TYPESCRIPT package
         # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
-        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' && !inputs.USE_JS }}
+        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         run: |
-          cp package.json dist/
-          cp README.md dist/ || true
-          npm publish dist
-        env:
-          NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}
-      - name: Publish to GitHub Package Registry if JAVASCRIPT
-        # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
-        if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' && inputs.USE_JS }}
-        run: |
-          npm publish
+          if [ ${{ inputs.inputs.USE_JS }} = 'false' ];then 
+            cp package.json dist/
+            cp README.md dist/ || true
+            npm publish dist
+          else
+            npm publish
+          fi
         env:
           NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}
