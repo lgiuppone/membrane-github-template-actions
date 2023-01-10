@@ -30,6 +30,10 @@ on:
         required: false
         type: boolean
         default: false
+      PROTOC_VERSION:
+        description: If this projects uses protobuff/protoc.
+        required: false
+        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,6 +51,8 @@ jobs:
       - name: Install protoc
         if: ${{ inputs.USE_PROTOC }}
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/protoc/install.v1@feature/INF-198-proto-sdk
+        with:
+          PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
       - name: Build code
         run: npm run build
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
