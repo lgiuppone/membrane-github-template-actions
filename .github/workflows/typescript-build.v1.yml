@@ -62,12 +62,14 @@ jobs:
           PROTOC_VERSION: ${{ inputs.PROTOC_VERSION }}
       - name: Build protoc and get output
         if: ${{ inputs.USE_PROTOC && github.event_name == 'pull_request' }}
-        run: npm run build:proto >file 2>&1 > ${{ github.workspace }}-pr-message.txt
+        run: |
+          npm run build:proto >file 2>&1 > pr-message.txt
+          cat ${{ github.workspace }}-pr-message.txt
         shell: bash
       - name: Comment PR with proto build output
         uses: Lattice-Trade/actions-comment-pull-request@v1
         with:
-          filePath: ${{ github.workspace }}-pr-message.txt
+          filePath: pr-message.txt
           reactions: eyes, rocket
       - name: Build code
         if: ${{ !inputs.USE_JS }}
