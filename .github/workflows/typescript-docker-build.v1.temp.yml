@@ -13,6 +13,9 @@ on:
       GH_SHA:
         required: true
         type: string
+      GH_ENV:
+        required: true
+        type: string
       HAS_UNIT_TEST:
         required: true
         type: boolean
@@ -93,6 +96,7 @@ jobs:
   docker-build:
     if: ${{ inputs.GH_PR_MERGED && inputs.GH_BRANCH_NAME != 'main' }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.GH_ENV }} 
     timeout-minutes: 60
     outputs:
       IMAGE_NAME: ${{ steps.docker-build.outputs.IMAGE_NAME }}
