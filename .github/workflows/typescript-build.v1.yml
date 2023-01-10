@@ -67,6 +67,7 @@ jobs:
           sed -i '/> Proto models created/ s/^>/####/' pr-message.txt
         shell: bash
       - name: Comment PR with proto build output
+        if: ${{ inputs.USE_PROTOC && github.event_name == 'pull_request' }}
         uses: Lattice-Trade/actions-comment-pull-request@v1
         with:
           filePath: pr-message.txt
