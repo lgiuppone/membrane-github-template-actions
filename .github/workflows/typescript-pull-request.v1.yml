@@ -20,6 +20,10 @@ on:
       NODE_VERSION:
         required: true
         type: string
+      USE_PROTOC:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   gitflow-validation:
@@ -57,8 +61,10 @@ jobs:
     needs: [test, lint]
     if: |
       always() &&
-      (needs.lint.result == 'success' && needs.test.result == 'success')
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@main
+      needs.lint.result == 'success' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@feature/INF-198-proto-sdk
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
+      USE_PROTOC: ${{ inputs.USE_PROTOC }}
     secrets: inherit

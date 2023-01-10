@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      USE_PROTOC:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -54,14 +58,16 @@ jobs:
     needs: [test, lint]
     if: |
       always() &&
-      (needs.lint.result == 'success' && needs.test.result == 'success')
-    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@main
+      needs.lint.result == 'success' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped')
+    uses: Lattice-Trade/membrane-github-template-actions/.github/workflows/typescript-build.v1.yml@feature/INF-198-proto-sdk
     with:
       NODE_VERSION: ${{ inputs.NODE_VERSION }}
       NPM_REGISTRY: npm.pkg.github.com
       NPM_SCOPE: "@${{ github.repository_owner }}"
       USE_PAT: ${{ inputs.USE_PAT }}
       IS_RELEASE_CANDIDATE: ${{ inputs.IS_RELEASE_CANDIDATE }}
+      USE_PROTOC: ${{ inputs.USE_PROTOC }}
       # @Lattice-Trade should be default when using npm.pkg.github.com
       # https://github.com/actions/setup-node/blob/v3/action.yml#L20
     secrets: inherit

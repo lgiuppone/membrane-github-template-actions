@@ -1,0 +1,20 @@
+name: 'Install protoc'
+description: 'Install protobuf binary from GitHub releases'
+runs:
+  using: "composite"
+  steps:
+    - name: Download protoc binary
+      run: |
+        curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v${{ env.PROTOC_VERSION }}/protoc-${{ env.PROTOC_VERSION }}-linux-x86_64.zip
+      shell: bash
+    - name: Check zip size
+      run: ls -l protoc-${{ env.PROTOC_VERSION }}-linux-x86_64.zip
+      shell: bash
+    - name: Unzip protoc
+      run: unzip protoc-${{ env.PROTOC_VERSION }}-linux-x86_64.zip
+      shell: bash
+    - name: Move protoc to execution PATH
+      run: |
+        chmod +x bin/protoc
+        mv bin/protoc /usr/local/bin/
+      shell: bash
