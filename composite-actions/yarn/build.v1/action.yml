@@ -41,13 +41,20 @@ runs:
         USE_PAT: ${{ inputs.USE_PAT }}
         NPM_TOKEN_PUBLISH: ${{ env.NPM_TOKEN_PUBLISH }}
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-    - name: Change tag to release candidate
-      if: ${{ inputs.IS_RELEASE_CANDIDATE == 'true' && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
-      run: yarn version --new-version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
-      shell: bash
-    - name: Publish to GitHub Package Registry
+    - name: Publish release candidate package to GitHub Package Registry
       # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
-      if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
+      if: ${{ inputs.IS_RELEASE_CANDIDATE == 'true' && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
+      run: |
+        yarn version --new-version $(jq -r .version package.json)-rc-$(echo ${GITHUB_SHA} | cut -c1-7) --no-git-tag-version
+        cp package.json dist/
+        cp README.md dist/ || true
+        npm publish dist --tag beta
+      env:
+        NPM_TOKEN: ${{ steps.token.outputs.PUBLISH_TOKEN }}
+      shell: bash
+    - name: Publish stable package to GitHub Package Registry
+      # This job only runs when we try to publish new SDKs as we set our own github registry instead of npm public registry
+      if: ${{ inputs.IS_RELEASE_CANDIDATE == 'false' && inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
       run: |
         cp package.json dist/
         cp README.md dist/ || true

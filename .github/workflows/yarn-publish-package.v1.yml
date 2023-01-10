@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Build application
-        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@main
+        uses: Lattice-Trade/membrane-github-template-actions/composite-actions/yarn/build.v1@feature/LM-10511-rc-package-tag
         with:
           NODE_VERSION: ${{ env.NODE_VERSION }}
           NPM_REGISTRY: npm.pkg.github.com
