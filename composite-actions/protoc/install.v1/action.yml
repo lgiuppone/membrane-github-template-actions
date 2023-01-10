@@ -9,10 +9,7 @@ runs:
   steps:
     - name: Download protoc binary
       run: |
-        curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v${{ inputs.PROTOC_VERSION }}/protoc-${{ inputs.PROTOC_VERSION }}-linux-x86_64.zip
-      shell: bash
-    - name: Check zip size
-      run: ls -l protoc-${{ inputs.PROTOC_VERSION }}-linux-x86_64.zip
+        curl -fOL https://github.com/protocolbuffers/protobuf/releases/download/v${{ inputs.PROTOC_VERSION }}/protoc-${{ inputs.PROTOC_VERSION }}-linux-x86_64.zip
       shell: bash
     - name: Unzip protoc
       run: unzip protoc-${{ inputs.PROTOC_VERSION }}-linux-x86_64.zip
