@@ -20,6 +20,11 @@ on:
         required: false
         type: boolean
         default: false
+      USE_JS:
+        description: If the project uses JS or TS, the publish command changes.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -77,3 +82,4 @@ jobs:
           NPM_SCOPE: "@${{ github.repository_owner }}"
           USE_PAT: ${{ inputs.USE_PAT }}
           IS_RELEASE_CANDIDATE: ${{ inputs.IS_RELEASE_CANDIDATE }}
+          USE_JS: ${{ inputs.USE_JS }}
