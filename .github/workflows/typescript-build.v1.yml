@@ -31,9 +31,11 @@ on:
         type: boolean
         default: false
       PROTOC_VERSION:
-        description: If this projects uses protobuff/protoc.
+        description: Protoc version to download from GitHub
         required: false
         type: string
+        default: 21.12
+
 jobs:
   build:
     runs-on: ubuntu-latest

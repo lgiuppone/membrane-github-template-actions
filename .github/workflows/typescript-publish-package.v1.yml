@@ -25,6 +25,7 @@ on:
         type: boolean
         default: false
       PROTOC_VERSION:
+        description: Protoc version to download from GitHub
         required: false
         type: string
         default: 21.12
