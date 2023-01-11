@@ -27,7 +27,7 @@ jobs:
         with:
           NODE_VERSION: ${{ inputs.NODE_VERSION }}
       - name: Install dependencies (npm ci)
-        run: npm ci --ignore-scripts
+        run: npm ci
         shell: bash
       - name: Zip and upload dependencies artifact
         uses: Lattice-Trade/membrane-github-template-actions/composite-actions/git/upload-artifact.v1@main
