@@ -76,6 +76,10 @@ jobs:
         if: ${{ !inputs.USE_JS }}
         run: npm run build
         shell: bash
+      - name: Move built proto models inside dist
+        if: ${{ inputs.USE_PROTOC }}
+        run: cp -r src/services dist/
+        shell: bash
       - name: Set the right publish token (PAT or GITHUB_TOKEN)
         if: ${{ inputs.NPM_REGISTRY == 'npm.pkg.github.com' }}
         id: token
