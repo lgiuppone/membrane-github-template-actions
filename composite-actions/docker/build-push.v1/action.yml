@@ -23,26 +23,27 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Export image variables
-      id: image
-      run: |
-        echo "NAME=${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
-        echo "TAG=${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
-      shell: bash
+  - name: Export image variables
+    id: image
+    run: |
+      echo "NAME=${{ inputs.ECR_REGISTRY }}/${{ inputs.ECR_REPOSITORY }}:${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
+      echo "TAG=${{ inputs.GH_SHA }}" >> $GITHUB_OUTPUT
+    shell: bash
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v2
 
-    - name: Docker build & push
-      uses: docker/build-push-action@v3
-      id: docker-build
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: ${{ steps.image.outputs.NAME }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        build-args: |
-          NPM_TOKEN=${{ inputs.NPM_TOKEN }}
-          COMMIT=${{ github.sha }}
+  - name: Docker build & push
+    uses: docker/build-push-action@v3
+    id: docker-build
+    with:
+      context: .
+      file: ./Dockerfile
+      push: true
+      tags: ${{ steps.image.outputs.NAME }}
+      cache-from: type=gha
+      cache-to: type=gha,mode=max
+      build-args: |
+        NPM_TOKEN=${{ inputs.NPM_TOKEN }}
+        COMMIT=${{ github.sha }}
+
