@@ -13,6 +13,10 @@ inputs:
   NPM_TOKEN:
     description: 'GitHub token to download private libraries'
     required: true
+  WORKING_DIR:
+    description: 'Working directory where Dockerfile is located'
+    required: false
+    default: '.'
 outputs:
   IMAGE_NAME:
     description: "A FQDN of the image to be built and pushed"
