@@ -37,8 +37,8 @@ runs:
     uses: docker/build-push-action@v3
     id: docker-build
     with:
-      context: .
-      file: ./Dockerfile
+      context: ${{ inputs.WORKING_DIR }}
+      file: ${{ inputs.WORKING_DIR }}/Dockerfile
       push: true
       tags: ${{ steps.image.outputs.NAME }}
       cache-from: type=gha
